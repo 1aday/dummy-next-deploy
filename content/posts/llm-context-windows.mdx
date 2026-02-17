@@ -1,0 +1,147 @@
+---
+title: "Understanding LLM Context Windows: What 128K Really Means"
+date: "2026-01-28"
+excerpt: "Context window size is more than just a number. Let's explore what it actually means for your applications."
+author: "Terminal Thoughts"
+tags: ["LLMs", "AI", "Architecture"]
+---
+
+Every new LLM release touts a bigger context window. GPT-4 Turbo has 128K tokens. Claude 3 Opus has 200K. Gemini 1.5 Pro claims 1M.
+
+But what does this actually mean for your application? And why doesn't it always work as advertised?
+
+## What Is a Context Window?
+
+The context window is the maximum number of tokens (roughly words) the model can "see" at once. This includes:
+
+- Your system prompt
+- Conversation history
+- Retrieved documents (in RAG)
+- The user's current message
+- The model's response
+
+Everything goes into one bucket.
+
+## The Real Limits
+
+Here's what they don't tell you in the marketing materials:
+
+### 1. Cost Scales Linearly
+
+If you use the full 128K context:
+
+```python
+# Cost comparison
+gpt4_turbo_128k = {
+    'input': 128_000 * 0.01 / 1000,   # $1.28 per request
+    'output': 4_000 * 0.03 / 1000,     # $0.12 per response
+}
+# Total: ~$1.40 per interaction
+
+# vs smaller context
+gpt4_turbo_8k = {
+    'input': 8_000 * 0.01 / 1000,      # $0.08 per request
+    'output': 4_000 * 0.03 / 1000,     # $0.12 per response
+}
+# Total: ~$0.20 per interaction
+```
+
+**7x cost difference** just from context size.
+
+### 2. Attention Quality Degrades
+
+The "lost in the middle" problem: models pay less attention to information buried in long contexts.
+
+Research shows accuracy drops for content in the middle of long contexts, even if it's technically within the window.
+
+### 3. Latency Increases
+
+Larger context = more compute = slower responses.
+
+```
+Context Size → Time to First Token
+8K tokens    → ~0.5s
+32K tokens   → ~1.2s  
+128K tokens  → ~3.5s
+```
+
+Users notice anything over 1 second.
+
+## Smart Context Management
+
+Instead of stuffing everything into context, use these strategies:
+
+### 1. Hierarchical Summarization
+
+```python
+def smart_context_builder(conversation_history, max_tokens=8000):
+    recent = conversation_history[-5:]  # Keep last 5 messages
+    older = conversation_history[:-5]
+    
+    if len(older) > 0:
+        summary = summarize(older)  # Compress old messages
+        context = summary + recent
+    else:
+        context = recent
+    
+    return context[:max_tokens]
+```
+
+### 2. Semantic Chunking
+
+Don't retrieve entire documents. Retrieve relevant sections:
+
+```python
+# Bad: Entire document in context
+context = retrieve_document(query)
+
+# Good: Relevant chunks only
+chunks = retrieve_chunks(query, top_k=3)
+context = "\n\n".join(chunks)
+```
+
+### 3. Dynamic Context Allocation
+
+Budget your tokens:
+
+```python
+token_budget = {
+    'system_prompt': 500,
+    'user_message': 2000,
+    'retrieved_context': 4000,
+    'conversation_history': 1500,
+    'output_buffer': 2000,
+}
+# Total: 10K tokens instead of 128K
+```
+
+## When Big Context Actually Helps
+
+Large context windows *are* useful for:
+
+1. **One-shot tasks** - Processing entire codebases or documents
+2. **Initial analysis** - When you need the full picture upfront
+3. **Complex reasoning** - When all the details matter
+
+Not useful for:
+
+1. **Conversational AI** - Most conversations don't need 100K tokens
+2. **RAG systems** - Better retrieval beats more context
+3. **Cost-sensitive apps** - The math doesn't work
+
+## Practical Recommendation
+
+**Start small.** Use 8K-16K context by default. Only scale up when you have evidence it helps.
+
+Monitor these metrics:
+
+- Average tokens per request
+- Response latency
+- Cost per interaction
+- Task completion rate
+
+Most apps work great with 8K tokens and smart context management.
+
+---
+
+*Context windows are getting bigger, but that doesn't mean you should use them. Be intentional.*

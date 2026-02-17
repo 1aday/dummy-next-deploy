@@ -1,0 +1,150 @@
+---
+title: "Fine-tuning vs Prompting: The Real Trade-offs"
+date: "2026-02-05"
+excerpt: "An honest look at when each approach makes sense, with real cost comparisons and performance data."
+author: "Terminal Thoughts"
+tags: ["AI", "LLMs", "Engineering", "Opinion"]
+---
+
+Everyone wants to fine-tune. It feels more "real" than prompting. But most of the time, you're just burning money and time.
+
+## The Uncomfortable Truth
+
+**90% of tasks don't need fine-tuning.** Better prompts, better examples, and better retrieval will get you there faster and cheaper.
+
+## When Prompting Wins
+
+Use prompting when:
+
+- ✅ You need flexibility (requirements change frequently)
+- ✅ You have limited labeled data (&lt;1000 examples)
+- ✅ You want to iterate quickly
+- ✅ Your task is well-defined and the model already "understands" it
+
+### Example: Classification
+
+```python
+# Prompting approach - works surprisingly well
+PROMPT = """Classify the sentiment of this review as positive, negative, or neutral.
+Be concise and only output the label.
+
+Review: {text}
+
+Sentiment:"""
+
+response = llm(PROMPT.format(text=review))
+# Works great with GPT-4, Claude, etc.
+```
+
+**Cost**: ~$0.01 per 1000 classifications  
+**Setup time**: 10 minutes  
+**Accuracy**: 85-92% on most domains
+
+## When Fine-tuning Wins
+
+Fine-tune when:
+
+- ✅ You need consistent formatting (JSON output, specific structure)
+- ✅ You have &gt;10,000 quality examples
+- ✅ You need to compress knowledge (smaller model, lower latency)
+- ✅ You want to teach new facts or specialized vocabulary
+
+### Example: Structured Extraction
+
+```python
+# After fine-tuning on 10k examples
+response = fine_tuned_model("Extract entities from: {text}")
+
+# Reliably outputs:
+{
+  "people": ["John Smith"],
+  "organizations": ["Acme Corp"],
+  "locations": ["New York"],
+  "dates": ["2026-02-05"]
+}
+```
+
+**Cost**: $100-500 for training + $0.001/1k inferences  
+**Setup time**: 1-2 weeks  
+**Accuracy**: 92-97% in-domain
+
+## The Hidden Costs
+
+### Fine-tuning Overhead
+
+| Cost | Prompting | Fine-tuning |
+|------|-----------|-------------|
+| Data labeling | Minimal (10-50 examples) | High (1k-100k examples) |
+| Infrastructure | None | GPU compute |
+| Maintenance | Update prompts | Retrain model |
+| Iteration speed | Minutes | Days |
+| Model drift | Easy to fix | Need retraining |
+
+### Real Example: Customer Support Bot
+
+We built a customer support classifier:
+
+**Initial approach (prompting)**:
+- 2 days to build
+- 88% accuracy
+- $50/month API costs
+- Easy to add new categories
+
+**After fine-tuning**:
+- 2 weeks to prepare data + train
+- 94% accuracy
+- $200 upfront + $20/month
+- Hard to iterate
+
+**The kicker**: We added 3 new categories a month later. Prompting approach took 20 minutes to update. Fine-tuned model required retraining ($200 + 3 days).
+
+## The Hybrid Approach
+
+Here's what actually works in production:
+
+1. **Start with prompting** - Get to 80% fast
+2. **Collect failure cases** - Build training data from production
+3. **Fine-tune selectively** - Only when you have clear data
+4. **Keep prompting as fallback** - For edge cases and new categories
+
+```python
+class HybridClassifier:
+    def __init__(self):
+        self.fine_tuned = load_model("fine-tuned-v3")
+        self.prompt_based = GPT4()
+    
+    def classify(self, text, category):
+        # Use fine-tuned for known categories
+        if category in self.trained_categories:
+            return self.fine_tuned(text)
+        
+        # Fall back to prompting for new categories
+        return self.prompt_based(text, category)
+```
+
+## My Recommendation
+
+**Default to prompting.** Only fine-tune when:
+
+1. You've exhausted prompt engineering
+2. You have solid eval data showing the gap
+3. You've calculated the total cost (not just training)
+4. You have a plan for maintaining the model
+
+> **Unpopular opinion**: Most "fine-tuning" projects are really "we don't want to write good prompts" projects.
+
+## What About LoRA?
+
+Low-Rank Adaptation (LoRA) makes fine-tuning cheaper, but doesn't change the core trade-off:
+
+- Still need quality training data
+- Still need evaluation infrastructure
+- Still harder to iterate than prompts
+
+It *does* make fine-tuning more accessible for experimentation. Just don't skip the "do I actually need this?" question.
+
+---
+
+**TL;DR**: Prompting is underrated. Fine-tuning is overused. Be honest about which problem you're solving.
+
+*Disagree? I'd love to hear about cases where fine-tuning was clearly the right call from day one.*

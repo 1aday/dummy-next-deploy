@@ -1,15 +1,30 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
+
+const sans = Inter({
+  variable: "--font-sans",
+  subsets: ["latin"],
+  display: "swap",
+});
 
 const mono = JetBrains_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const serif = Instrument_Serif({
+  variable: "--font-serif",
+  weight: "400",
+  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Terminal Noir | AI & ML Technical Posts",
-  description: "Technical writing about artificial intelligence, machine learning, and the future of computation",
+  title: "Terminal Thoughts | AI & ML Engineering",
+  description: "In-depth technical writing on artificial intelligence, machine learning, and software engineering",
+  keywords: ["AI", "machine learning", "engineering", "technical blog", "software"],
 };
 
 export default function RootLayout({
@@ -18,8 +33,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${mono.variable} font-mono antialiased`}>
+    <html lang="en" className={`${sans.variable} ${mono.variable} ${serif.variable}`}>
+      <body className="font-sans antialiased">
         {children}
       </body>
     </html>
