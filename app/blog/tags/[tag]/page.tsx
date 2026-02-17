@@ -1,24 +1,76 @@
+import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Github, Twitter } from "lucide-react";
+import { ArrowLeft, ArrowRight, Tag } from "lucide-react";
 import { format } from "date-fns";
-import { getAllPosts, getTagsWithCount } from "@/lib/posts";
+import { getAllTags, getPostsByTagSlug, tagToSlug, getTagsWithCount } from "@/lib/posts";
 
-export const metadata = {
-  title: "Growth Guides | AI Growth Stack",
-  description: "Deep technical guides on AI-powered product growth, retention systems, growth loops, personalization, and monetization strategies. Code-first tutorials from growth engineers building AI-native products.",
-};
+const BASE_URL = "https://dummy-next-deploy.vercel.app";
 
-export default function BlogPage() {
-  const posts = getAllPosts();
-  const tags = getTagsWithCount();
+export async function generateStaticParams() {
+  const tags = getAllTags();
+  return tags.map((tag) => ({
+    tag: tagToSlug(tag),
+  }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ tag: string }> }) {
+  const { tag: tagSlug } = await params;
+  const result = getPostsByTagSlug(tagSlug);
+  if (!result) return { title: "Tag Not Found" };
+
+  return {
+    title: `${result.tag} Articles`,
+    description: `Deep technical guides on ${result.tag}. ${result.posts.length} articles covering practical ${result.tag.toLowerCase()} strategies, implementations, and best practices.`,
+    alternates: {
+      canonical: `/blog/tags/${tagSlug}`,
+    },
+    openGraph: {
+      title: `${result.tag} Articles | AI Growth Stack`,
+      description: `${result.posts.length} deep technical guides on ${result.tag.toLowerCase()}`,
+      type: "website",
+      siteName: "AI Growth Stack",
+    },
+  };
+}
+
+export default async function TagPage({ params }: { params: Promise<{ tag: string }> }) {
+  const { tag: tagSlug } = await params;
+  const result = getPostsByTagSlug(tagSlug);
+  if (!result) notFound();
+
+  const { tag, posts } = result;
+  const allTags = getTagsWithCount();
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: `${tag} Articles`,
+    description: `Articles about ${tag} on AI Growth Stack`,
+    url: `${BASE_URL}/blog/tags/${tagSlug}`,
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: posts.length,
+      itemListElement: posts.map((post, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        url: `${BASE_URL}/blog/${post.slug}`,
+        name: post.title,
+      })),
+    },
+  };
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       <nav className="sticky top-0 z-50 glass-card border-b border-border/60">
         <div className="mx-auto max-w-3xl px-6">
           <div className="flex h-16 items-center justify-between">
-            <Link 
-              href="/" 
+            <Link
+              href="/"
               className="group flex items-center gap-2 font-display text-base font-semibold text-foreground"
             >
               <span className="relative flex items-center gap-1.5">
@@ -29,24 +81,15 @@ export default function BlogPage() {
               </span>
             </Link>
             <div className="flex items-center gap-6">
-              <Link
-                href="/guides"
-                className="relative text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group"
-              >
+              <Link href="/guides" className="relative text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group">
                 Guides
                 <span className="absolute -bottom-1.5 left-0 h-0.5 w-0 bg-primary transition-all group-hover:w-full" />
               </Link>
-              <Link
-                href="/blog"
-                className="relative text-sm font-medium text-foreground group"
-              >
+              <Link href="/blog" className="relative text-sm font-medium text-foreground group">
                 Writing
                 <span className="absolute -bottom-1.5 left-0 h-0.5 w-full bg-primary" />
               </Link>
-              <Link
-                href="/about"
-                className="relative text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group"
-              >
+              <Link href="/about" className="relative text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group">
                 About
                 <span className="absolute -bottom-1.5 left-0 h-0.5 w-0 bg-primary transition-all group-hover:w-full" />
               </Link>
@@ -56,37 +99,47 @@ export default function BlogPage() {
       </nav>
 
       <main className="mx-auto max-w-3xl px-6 py-16">
-        <Link 
-          href="/"
+        <Link
+          href="/blog"
           className="group mb-12 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-          <span>Back to home</span>
+          <span>All articles</span>
         </Link>
 
         <header className="mb-12">
-          <h1 className="mb-5 font-display text-5xl font-bold text-foreground md:text-6xl">
-            Growth Guides
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary">
+            <Tag className="h-3.5 w-3.5" />
+            <span>Topic</span>
+          </div>
+          <h1 className="mb-4 font-display text-5xl font-bold text-foreground md:text-6xl">
+            {tag}
           </h1>
           <p className="text-xl text-muted-foreground/90">
-            <span className="font-semibold text-primary">{posts.length}</span> deep guides on AI-powered product growth, retention, and monetization
+            <span className="font-semibold text-primary">{posts.length}</span>{" "}
+            {posts.length === 1 ? "article" : "articles"} on {tag.toLowerCase()}
           </p>
         </header>
 
-        {/* Topic Tags */}
-        <div className="mb-10 flex flex-wrap gap-2">
-          {tags.map(({ tag, slug, count }) => (
+        {/* Tag Cloud */}
+        <div className="mb-12 flex flex-wrap gap-2">
+          {allTags.map(({ tag: t, slug, count }) => (
             <Link
               key={slug}
               href={`/blog/tags/${slug}`}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border/50 bg-secondary/50 px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:border-primary/30 hover:bg-primary/5"
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+                slug === tagSlug
+                  ? "border-primary/30 bg-primary/10 text-primary"
+                  : "border-border/50 bg-secondary/50 text-secondary-foreground hover:border-primary/30 hover:bg-primary/5"
+              }`}
             >
-              {tag}
+              {t}
               <span className="text-muted-foreground">({count})</span>
             </Link>
           ))}
         </div>
 
+        {/* Posts */}
         <div className="space-y-6">
           {posts.map((post, index) => (
             <Link
@@ -111,63 +164,17 @@ export default function BlogPage() {
                   <p className="mb-4 text-muted-foreground/90 leading-relaxed">
                     {post.excerpt}
                   </p>
-                  {post.tags && post.tags.length > 0 && (
-                    <div className="mb-4 flex flex-wrap gap-2">
-                      {post.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="inline-flex items-center rounded-lg border border-border/50 bg-secondary/50 px-2.5 py-1 text-xs font-medium text-secondary-foreground transition-colors group-hover:border-primary/30 group-hover:bg-primary/5"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
                   <div className="flex items-center gap-2 text-sm font-semibold text-primary">
                     <span>Read article</span>
                     <ArrowRight className="h-4 w-4 arrow-animate" />
                   </div>
                 </div>
-                
-                {/* Subtle gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/0 to-primary/5 opacity-0 transition-opacity group-hover:opacity-100" />
               </article>
             </Link>
           ))}
         </div>
       </main>
-
-      <footer className="mt-32 border-t border-border/50">
-        <div className="mx-auto max-w-3xl px-6 py-12">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
-              © 2026 · Crafted with attention to detail
-            </p>
-            <div className="flex items-center gap-3">
-              <a 
-                href="https://github.com" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Github className="h-4 w-4" />
-              </a>
-              <a 
-                href="https://twitter.com" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Twitter className="h-4 w-4" />
-              </a>
-            </div>
-          </div>
-          <div className="mt-6 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-          <p className="mt-6 text-center text-xs text-muted-foreground/60">
-            Next.js 15 · React 19 · Tailwind CSS v4
-          </p>
-        </div>
-      </footer>
     </>
   );
 }

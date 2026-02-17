@@ -62,3 +62,27 @@ export function getAllTags(): string[] {
   const tags = posts.flatMap((post) => post.tags || []);
   return Array.from(new Set(tags));
 }
+
+export function tagToSlug(tag: string): string {
+  return tag.toLowerCase().replace(/\s+/g, "-");
+}
+
+export function getPostsByTagSlug(tagSlug: string): { tag: string; posts: Post[] } | null {
+  const allTags = getAllTags();
+  const tag = allTags.find((t) => tagToSlug(t) === tagSlug);
+  if (!tag) return null;
+  return { tag, posts: getPostsByTag(tag) };
+}
+
+export function getTagsWithCount(): { tag: string; slug: string; count: number }[] {
+  const posts = getAllPosts();
+  const tagCounts = new Map<string, number>();
+  posts.forEach((post) => {
+    (post.tags || []).forEach((tag) => {
+      tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+    });
+  });
+  return Array.from(tagCounts.entries())
+    .map(([tag, count]) => ({ tag, slug: tagToSlug(tag), count }))
+    .sort((a, b) => b.count - a.count);
+}
