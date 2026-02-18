@@ -4,6 +4,7 @@ import { getAllPosts } from "@/lib/posts";
 import { format } from "date-fns";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { getAllGuides } from "@/lib/guides";
+import { siteConfig } from "@/lib/config";
 
 export default function Home() {
   const allPosts = getAllPosts();
@@ -82,31 +83,37 @@ export default function Home() {
           </p>
           <div className="flex items-center gap-4">
             <div className="flex gap-3">
-              <a
-                href="https://github.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl border border-border bg-card text-muted-foreground hover-lift hover-glow"
-              >
-                <Github className="relative z-10 h-5 w-5 transition-transform group-hover:scale-110" />
-                <span className="absolute inset-0 bg-primary/10 opacity-0 transition-opacity group-hover:opacity-100" />
-              </a>
-              <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl border border-border bg-card text-muted-foreground hover-lift hover-glow badge-dot"
-              >
-                <Twitter className="relative z-10 h-5 w-5 transition-transform group-hover:scale-110" />
-                <span className="absolute inset-0 bg-primary/10 opacity-0 transition-opacity group-hover:opacity-100" />
-              </a>
-              <a
-                href="mailto:hello@example.com"
-                className="group relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl border border-border bg-card text-muted-foreground hover-lift hover-glow"
-              >
-                <Mail className="relative z-10 h-5 w-5 transition-transform group-hover:scale-110" />
-                <span className="absolute inset-0 bg-primary/10 opacity-0 transition-opacity group-hover:opacity-100" />
-              </a>
+              {siteConfig.social.github && (
+                <a
+                  href={siteConfig.social.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl border border-border bg-card text-muted-foreground hover-lift hover-glow"
+                >
+                  <Github className="relative z-10 h-5 w-5 transition-transform group-hover:scale-110" />
+                  <span className="absolute inset-0 bg-primary/10 opacity-0 transition-opacity group-hover:opacity-100" />
+                </a>
+              )}
+              {siteConfig.social.twitter && (
+                <a
+                  href={siteConfig.social.twitter}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl border border-border bg-card text-muted-foreground hover-lift hover-glow badge-dot"
+                >
+                  <Twitter className="relative z-10 h-5 w-5 transition-transform group-hover:scale-110" />
+                  <span className="absolute inset-0 bg-primary/10 opacity-0 transition-opacity group-hover:opacity-100" />
+                </a>
+              )}
+              {siteConfig.social.email && (
+                <a
+                  href={`mailto:${siteConfig.social.email}`}
+                  className="group relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl border border-border bg-card text-muted-foreground hover-lift hover-glow"
+                >
+                  <Mail className="relative z-10 h-5 w-5 transition-transform group-hover:scale-110" />
+                  <span className="absolute inset-0 bg-primary/10 opacity-0 transition-opacity group-hover:opacity-100" />
+                </a>
+              )}
             </div>
           </div>
 
@@ -280,22 +287,26 @@ export default function Home() {
             </p>
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
               <Link href="/feed.xml" className="hover:text-foreground transition-colors">RSS</Link>
-              <a
-                href="https://github.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Github className="h-4 w-4" />
-              </a>
-              <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Twitter className="h-4 w-4" />
-              </a>
+              {siteConfig.social.github && (
+                <a
+                  href={siteConfig.social.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Github className="h-4 w-4" />
+                </a>
+              )}
+              {siteConfig.social.twitter && (
+                <a
+                  href={siteConfig.social.twitter}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Twitter className="h-4 w-4" />
+                </a>
+              )}
             </div>
           </div>
           <div className="mt-6 h-px bg-gradient-to-r from-transparent via-border to-transparent" />

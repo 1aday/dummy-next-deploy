@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { DM_Sans, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import Script from "next/script";
+import { siteConfig } from "@/lib/config";
+import { ExitIntentPopup } from "@/components/exit-intent-popup";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -63,9 +66,10 @@ export const metadata: Metadata = {
     title: "AI Growth Stack | Product Growth in the Age of AI",
     description: "Master AI-powered product growth, retention, and monetization with real code examples",
   },
-  metadataBase: new URL("https://dummy-next-deploy.vercel.app"),
+  metadataBase: new URL(siteConfig.url),
   alternates: {
     canonical: "/",
+    languages: { "en-US": "/", "x-default": "/" },
     types: {
       "application/rss+xml": "/feed.xml",
     },
@@ -77,11 +81,43 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const ga4Id = process.env.NEXT_PUBLIC_GA4_ID;
+
   return (
     <html lang="en" className={`${dmSans.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SiteNavigationElement",
+              name: ["Home", "Guides", "Writing", "About"],
+              url: [
+                siteConfig.url,
+                `${siteConfig.url}/guides`,
+                `${siteConfig.url}/blog`,
+                `${siteConfig.url}/about`,
+              ],
+            }),
+          }}
+        />
+      </head>
       <body className="font-sans antialiased">
         {children}
+        <ExitIntentPopup />
         <Analytics />
+        {ga4Id && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${ga4Id}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga4-init" strategy="afterInteractive">
+              {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${ga4Id}');`}
+            </Script>
+          </>
+        )}
       </body>
     </html>
   );

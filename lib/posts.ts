@@ -9,12 +9,14 @@ export interface Post {
   slug: string;
   title: string;
   date: string;
+  lastModified: string;
   excerpt: string;
   content: string;
   author?: string;
   tags?: string[];
   readingTime: string;
   coverImage?: string;
+  type?: "article" | "tutorial";
 }
 
 export function getPostSlugs() {
@@ -28,6 +30,7 @@ export function getPostBySlug(slug: string): Post {
   const realSlug = slug.replace(/\.mdx$/, "");
   const fullPath = path.join(postsDirectory, `${realSlug}.mdx`);
   const fileContents = fs.readFileSync(fullPath, "utf8");
+  const fileStat = fs.statSync(fullPath);
   const { data, content } = matter(fileContents);
   const stats = readingTime(content);
 
@@ -35,12 +38,14 @@ export function getPostBySlug(slug: string): Post {
     slug: realSlug,
     title: data.title || "Untitled",
     date: data.date || new Date().toISOString(),
+    lastModified: fileStat.mtime.toISOString(),
     excerpt: data.excerpt || "",
     content,
     author: data.author,
     tags: data.tags || [],
     readingTime: stats.text,
     coverImage: data.coverImage,
+    type: data.type || undefined,
   };
 }
 

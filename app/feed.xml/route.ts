@@ -1,6 +1,7 @@
 import { getAllPosts } from "@/lib/posts";
+import { siteConfig } from "@/lib/config";
 
-const BASE_URL = "https://dummy-next-deploy.vercel.app";
+const BASE_URL = siteConfig.url;
 
 export async function GET() {
   const posts = getAllPosts();

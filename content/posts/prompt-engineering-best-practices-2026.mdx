@@ -1,0 +1,454 @@
+---
+title: "Prompt Engineering in 2026: What Actually Works"
+date: "2026-02-13"
+excerpt: "Forget the 'act as an expert' templates. After shipping dozens of LLM features in production, here are the prompt engineering techniques that actually improve outputs, reduce costs, and scale reliably."
+tags: ["Prompt Engineering", "LLMs", "GPT-4", "Claude", "AI Engineering"]
+readingTime: "11 min read"
+type: tutorial
+---
+
+## The Prompt Engineering Myth
+
+The internet is full of prompt templates that promise magical results: "Act as a world-class expert..." or "Think step-by-step..."
+
+Some work. Most don't. And almost none scale to production.
+
+Here's what I've learned shipping LLM features to millions of users: good prompting is about structure, constraints, and iteration—not magic words.
+
+## What Actually Moves the Needle
+
+After running thousands of A/B tests on prompts in production:
+
+**What matters:**
+- Clear task definition and constraints
+- Few-shot examples with edge cases
+- Output format specification
+- Chain-of-thought for complex reasoning
+- Testing against failure modes
+
+**What doesn't:**
+- Flowery language ("world-class expert")
+- Unnecessary politeness ("please")
+- Generic instructions ("be creative")
+- Long preambles
+
+Let's build this from scratch.
+
+## 1. Task Definition: Be Brutally Specific
+
+**Bad:**
+```
+Write a product description for this item.
+```
+
+**Good:**
+```
+Write a product description that:
+- Is exactly 3 sentences (no more, no less)
+- Highlights the key benefit in sentence 1
+- Includes technical specs in sentence 2  
+- Ends with a call-to-action in sentence 3
+- Uses active voice throughout
+- Avoids superlatives (no "best," "amazing," etc.)
+
+Product: {product_data}
+```
+
+The difference: The second prompt is testable. You can programmatically verify if the output meets requirements.
+
+## 2. Output Format: JSON Over Prose
+
+**Bad:**
+```
+Analyze this customer review and tell me the sentiment and key topics.
+```
+
+**Good:**
+```
+Analyze this customer review and return a JSON object with this exact structure:
+
+{
+  "sentiment": "positive" | "neutral" | "negative",
+  "confidence": 0.0 to 1.0,
+  "key_topics": ["topic1", "topic2", "topic3"],
+  "reasoning": "brief explanation"
+}
+
+Review: {review_text}
+```
+
+Why JSON wins:
+- Parseable and testable
+- Forces structured thinking
+- Easier to integrate into pipelines
+- Reduces hallucinations (model can't ramble)
+
+## 3. Few-Shot Examples: Show, Don't Tell
+
+**Bad:**
+```
+Classify these support tickets by urgency.
+```
+
+**Good:**
+```
+Classify support tickets by urgency using these examples:
+
+Example 1:
+Input: "My account was hacked and I can't log in"
+Output: {"urgency": "critical", "reason": "security breach, account access blocked"}
+
+Example 2:
+Input: "How do I change my email address?"
+Output: {"urgency": "low", "reason": "non-urgent account setting"}
+
+Example 3:
+Input: "Payment failed but I was charged"
+Output: {"urgency": "high", "reason": "billing issue affecting service"}
+
+Now classify this ticket:
+Input: {ticket_text}
+Output:
+```
+
+Few-shot learning is underrated. 2-3 good examples often outperform pages of instructions.
+
+**Pro tip:** Include edge case examples, not just happy path.
+
+## 4. Chain-of-Thought: For Complex Reasoning Only
+
+**When to use CoT:** Multi-step reasoning, math, complex logic
+
+**When NOT to use CoT:** Simple classification, extraction, formatting
+
+**Example (good use case):**
+
+```
+You are a financial analyst. Calculate the ROI for this investment using chain-of-thought reasoning.
+
+Investment data: {data}
+
+Think through this step-by-step:
+1. Calculate total initial investment
+2. Calculate projected revenue over 5 years
+3. Calculate costs and expenses
+4. Compute net profit
+5. Calculate ROI percentage
+
+Show your work for each step, then provide the final ROI.
+```
+
+**Cost reality:** CoT adds 2-3x tokens. Use it only when accuracy justifies the cost.
+
+## 5. Constraints: Reduce Hallucinations
+
+**The problem:** LLMs love to make stuff up.
+
+**The solution:** Explicit constraints + grounding.
+
+**Bad:**
+```
+Answer this customer question: {question}
+```
+
+**Good:**
+```
+Answer this customer question using ONLY information from the provided documentation.
+
+Rules:
+- If the answer isn't in the docs, say "I don't have that information"
+- Cite the specific section you're referencing
+- Do not make assumptions or infer beyond what's stated
+- If multiple interpretations exist, mention them
+
+Documentation: {docs}
+Question: {question}
+
+Answer:
+```
+
+**Grounding techniques:**
+1. **Citation requirement:** Force the model to cite sources
+2. **"I don't know" training:** Reward refusing to answer over guessing
+3. **Fact-checking pass:** Use a second LLM call to verify factual claims
+
+## 6. System Messages: Set Global Behavior
+
+System messages are underused. They set tone, constraints, and behavior that apply to all interactions.
+
+**Example (Claude):**
+
+```python
+response = anthropic.messages.create(
+    model="claude-sonnet-4-5",
+    max_tokens=1024,
+    system="""You are a technical support assistant.
+
+Core behaviors:
+- Be concise (max 3 sentences per response)
+- Always provide actionable next steps
+- If you're unsure, say so explicitly
+- Never guess at technical details
+- Cite documentation when possible
+
+Your tone is professional but friendly. Avoid jargon unless the user uses it first.""",
+    messages=[
+        {"role": "user", "content": user_query}
+    ]
+)
+```
+
+System messages are cheaper than repeating instructions in every prompt.
+
+## 7. Temperature & Sampling: Underrated Dials
+
+**Temperature:**
+- **0.0:** Deterministic, factual tasks (classification, extraction)
+- **0.3-0.5:** Balanced (most production use cases)
+- **0.7-1.0:** Creative tasks (content generation, brainstorming)
+
+**Top-p (nucleus sampling):**
+- **0.9-0.95:** Default for most tasks
+- **0.95-1.0:** When you want more variety
+
+**Example:**
+
+```python
+# Factual extraction (low temperature)
+response = openai.chat.completions.create(
+    model="gpt-4",
+    temperature=0.0,
+    top_p=0.9,
+    messages=[{"role": "user", "content": extraction_prompt}]
+)
+
+# Creative writing (higher temperature)
+response = openai.chat.completions.create(
+    model="gpt-4",
+    temperature=0.8,
+    top_p=0.95,
+    messages=[{"role": "user", "content": creative_prompt}]
+)
+```
+
+## 8. Prompt Iteration: The Real Work
+
+**My process:**
+
+1. **Start simple:** Write a basic prompt
+2. **Test 20 examples:** Find failure modes
+3. **Add constraints:** Address specific failures
+4. **A/B test:** Measure improvement
+5. **Iterate:** Repeat until good enough
+
+**Real example from production:**
+
+**v1 (60% accuracy):**
+```
+Classify this email as spam or not spam.
+```
+
+**v2 (75% accuracy):**
+```
+Classify this email as spam or not spam.
+Return JSON: {"classification": "spam" | "not_spam", "confidence": 0-1}
+```
+
+**v3 (85% accuracy):**
+```
+Classify this email as spam or not spam.
+
+Spam indicators:
+- Suspicious links
+- Requests for personal info
+- Urgency/scarcity tactics
+- Poor grammar/spelling
+- Impersonation
+
+Return JSON: {"classification": "spam" | "not_spam", "confidence": 0-1, "indicators": [...]}
+```
+
+**v4 (92% accuracy):**
+```
+[Added 5 few-shot examples with edge cases]
+[Added explicit handling for newsletters, marketing emails, and automated emails]
+```
+
+**Key insight:** Iteration matters more than your initial prompt.
+
+## 9. Cost Optimization
+
+Prompts cost money. Optimize for token efficiency:
+
+**Expensive:**
+```
+You are a world-class expert in customer service with 20 years of experience helping customers solve complex problems. Your goal is to provide exceptional, thoughtful, and comprehensive responses that address every possible concern the customer might have...
+
+[300 tokens of preamble]
+
+Now answer this question: {question}
+```
+
+**Cheap (same quality):**
+```
+You are a customer service assistant. Be concise and helpful.
+
+Question: {question}
+Answer:
+```
+
+**Savings:** 90% fewer tokens, no quality loss.
+
+## 10. Production Patterns That Scale
+
+### Pattern 1: Multi-Stage Pipelines
+
+Instead of one mega-prompt, chain smaller prompts:
+
+```python
+# Stage 1: Intent classification
+intent = classify_intent(user_message)
+
+# Stage 2: Route to specialized prompt
+if intent == "technical_support":
+    response = technical_support_prompt(user_message)
+elif intent == "billing":
+    response = billing_prompt(user_message)
+else:
+    response = general_prompt(user_message)
+```
+
+**Benefits:**
+- Cheaper (smaller prompts)
+- More accurate (specialized prompts)
+- Easier to debug
+
+### Pattern 2: Self-Critique
+
+Ask the model to check its own work:
+
+```python
+# Step 1: Generate response
+initial_response = generate_response(user_query)
+
+# Step 2: Critique
+critique_prompt = f"""
+Review this response for accuracy and completeness:
+
+User query: {user_query}
+Response: {initial_response}
+
+Check:
+1. Does it answer the question completely?
+2. Are there any factual errors?
+3. Is the tone appropriate?
+
+If issues found, provide an improved version.
+"""
+
+final_response = critique(critique_prompt)
+```
+
+**Cost:** 2x, but often worth it for high-stakes outputs.
+
+### Pattern 3: Caching System Messages
+
+System messages are usually static. Cache them:
+
+```python
+# Anthropic's prompt caching
+response = anthropic.messages.create(
+    model="claude-sonnet-4-5",
+    max_tokens=1024,
+    system=[
+        {
+            "type": "text",
+            "text": long_system_prompt,
+            "cache_control": {"type": "ephemeral"}
+        }
+    ],
+    messages=[{"role": "user", "content": user_query}]
+)
+```
+
+**Savings:** 90% reduction on system message tokens (billed at cache hit rate).
+
+## 11. Testing & Evaluation
+
+**Don't ship without testing.**
+
+### Build an Eval Set
+
+```python
+eval_set = [
+    {
+        "input": "customer query 1",
+        "expected_output": "expected response 1",
+        "criteria": ["accuracy", "tone", "completeness"]
+    },
+    # 50-100 examples
+]
+
+def evaluate_prompt(prompt_template):
+    scores = []
+    for example in eval_set:
+        output = run_prompt(prompt_template, example["input"])
+        score = judge_output(output, example["expected_output"], example["criteria"])
+        scores.append(score)
+    
+    return {
+        "avg_score": sum(scores) / len(scores),
+        "failures": [ex for ex, score in zip(eval_set, scores) if score < 0.7]
+    }
+```
+
+### A/B Test in Production
+
+Track metrics:
+- **Accuracy:** How often is the output correct?
+- **Cost:** Average tokens per request
+- **Latency:** Time to first token
+- **User satisfaction:** Thumbs up/down, engagement
+
+## 12. Model-Specific Tips
+
+### GPT-4
+- Responds well to structured prompts
+- Strong at following complex instructions
+- Use JSON mode for structured output
+- Benefits from few-shot examples
+
+### Claude (Anthropic)
+- Excels at long context (200K tokens)
+- Better at refusing to answer (less hallucination)
+- Stronger at nuanced reasoning
+- Use prompt caching for long system messages
+
+### Open-Source (Llama, Mistral)
+- Needs more explicit instructions
+- Benefits heavily from few-shot examples
+- More sensitive to prompt formatting
+- Test temperature more carefully
+
+## What Actually Matters
+
+1. **Specificity over cleverness:** Clear instructions beat flowery language
+2. **Structure over prose:** JSON output is easier to work with
+3. **Iteration over perfection:** Ship, test, improve
+4. **Constraints reduce hallucinations:** Tell the model what NOT to do
+5. **Cost optimization matters:** Shorter prompts = lower bills
+
+## Start Here
+
+1. **Define the task clearly:** What exactly should the output look like?
+2. **Add 2-3 few-shot examples:** Show the model what good looks like
+3. **Request JSON output:** Makes testing easier
+4. **Test on 20 examples:** Find failure modes
+5. **Iterate:** Add constraints to fix failures
+6. **Measure in production:** Track accuracy, cost, latency
+
+The best prompt engineers aren't the ones with the longest prompts. They're the ones who iterate fastest.
+
+---
+
+**Want to see your prompt examples?** Share them on [Twitter](https://twitter.com) or [email me](mailto:hello@example.com).

@@ -1,7 +1,12 @@
 import type { MetadataRoute } from "next";
 import { getAllPosts, getAllTags, tagToSlug } from "@/lib/posts";
+import { getAllComparisons } from "@/lib/comparisons";
+import { getAllTerms } from "@/lib/glossary";
+import { getAllToolCategories } from "@/lib/tools";
+import { getAllDigests } from "@/lib/digests";
+import { siteConfig } from "@/lib/config";
 
-const BASE_URL = "https://dummy-next-deploy.vercel.app";
+const BASE_URL = siteConfig.url;
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const posts = getAllPosts();
@@ -56,6 +61,66 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
+  // Comparison pages
+  const comparisons = getAllComparisons();
+  const comparisonEntries: MetadataRoute.Sitemap = comparisons.map((c) => ({
+    url: `${BASE_URL}/compare/${c.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
+
+  // Glossary pages
+  const glossaryTerms = getAllTerms();
+  const glossaryEntries: MetadataRoute.Sitemap = [
+    {
+      url: `${BASE_URL}/glossary`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    ...glossaryTerms.map((term) => ({
+      url: `${BASE_URL}/glossary/${term.slug}`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    })),
+  ];
+
+  // Tool pages
+  const toolCategories = getAllToolCategories();
+  const toolEntries: MetadataRoute.Sitemap = [
+    {
+      url: `${BASE_URL}/tools`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    ...toolCategories.map((cat) => ({
+      url: `${BASE_URL}/tools/${cat.slug}`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
+  ];
+
+  // Digest pages
+  const digests = getAllDigests();
+  const digestEntries: MetadataRoute.Sitemap = [
+    {
+      url: `${BASE_URL}/digest`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.7,
+    },
+    ...digests.map((d) => ({
+      url: `${BASE_URL}/digest/${d.slug}`,
+      lastModified: new Date(d.date),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    })),
+  ];
+
   return [
     {
       url: BASE_URL,
@@ -70,6 +135,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
+      url: `${BASE_URL}/start-here`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.9,
+    },
+    {
       url: `${BASE_URL}/about`,
       lastModified: new Date(),
       changeFrequency: "monthly",
@@ -79,5 +150,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...blogEntries,
     ...tagEntries,
     ...industryEntries,
+    ...comparisonEntries,
+    ...glossaryEntries,
+    ...toolEntries,
+    ...digestEntries,
   ];
 }

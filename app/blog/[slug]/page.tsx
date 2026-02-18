@@ -5,8 +5,10 @@ import Link from "next/link";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { getAllPosts, getPostBySlug } from "@/lib/posts";
 import { NewsletterForm } from "@/components/newsletter-form";
+import { getFaqsForSlug, type FaqItem } from "@/lib/faq-data";
+import { siteConfig } from "@/lib/config";
 
-const BASE_URL = "https://dummy-next-deploy.vercel.app";
+const BASE_URL = siteConfig.url;
 
 export async function generateStaticParams() {
   const posts = getAllPosts();
@@ -32,6 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         description: post.excerpt,
         type: "article",
         publishedTime: post.date,
+        modifiedTime: post.lastModified,
         authors: ["AI Growth Stack"],
         tags: post.tags,
         siteName: "AI Growth Stack",
@@ -63,15 +66,15 @@ function getRelatedPosts(currentSlug: string, currentTags: string[] = [], limit 
     .slice(0, limit);
 }
 
-function ArticleJsonLd({ post, slug }: { post: { title: string; excerpt: string; date: string; tags?: string[]; readingTime: string }; slug: string }) {
-  const jsonLd = [
+function ArticleJsonLd({ post, slug, faqs }: { post: { title: string; excerpt: string; date: string; lastModified: string; tags?: string[]; readingTime: string; type?: "article" | "tutorial" }; slug: string; faqs?: FaqItem[] | null }) {
+  const jsonLd: Record<string, unknown>[] = [
     {
       "@context": "https://schema.org",
-      "@type": "Article",
+      "@type": post.type === "tutorial" ? "TechArticle" : "Article",
       headline: post.title,
       description: post.excerpt,
       datePublished: post.date,
-      dateModified: post.date,
+      dateModified: post.lastModified,
       author: {
         "@type": "Organization",
         name: "AI Growth Stack",
@@ -115,6 +118,21 @@ function ArticleJsonLd({ post, slug }: { post: { title: string; excerpt: string;
     },
   ];
 
+  if (faqs && faqs.length > 0) {
+    jsonLd.push({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqs.map((faq) => ({
+        "@type": "Question",
+        name: faq.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: faq.answer,
+        },
+      })),
+    });
+  }
+
   return (
     <>
       {jsonLd.map((schema, i) => (
@@ -139,10 +157,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   }
 
   const relatedPosts = getRelatedPosts(slug, post.tags);
+  const faqs = getFaqsForSlug(slug);
 
   return (
     <>
-      <ArticleJsonLd post={post} slug={slug} />
+      <ArticleJsonLd post={post} slug={slug} faqs={faqs} />
 
       <nav className="sticky top-0 z-50 glass-card border-b border-border/60">
         <div className="mx-auto max-w-3xl px-6">
@@ -234,6 +253,27 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           <MDXRemote source={post.content} />
         </div>
 
+        {/* FAQ Section */}
+        {faqs && faqs.length > 0 && (
+          <section className="mt-16">
+            <h2 className="mb-6 font-display text-2xl font-bold text-foreground">
+              Frequently Asked Questions
+            </h2>
+            <div className="space-y-6">
+              {faqs.map((faq, i) => (
+                <div key={i} className="rounded-xl border border-border bg-card p-6">
+                  <h3 className="mb-3 font-display text-base font-semibold text-foreground">
+                    {faq.question}
+                  </h3>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {faq.answer}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Mid-article Newsletter CTA */}
         <NewsletterForm variant="mid-article" />
 
@@ -322,22 +362,26 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             </p>
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
               <Link href="/feed.xml" className="hover:text-foreground transition-colors">RSS</Link>
-              <a
-                href="https://github.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-foreground transition-colors"
-              >
-                <Github className="h-4 w-4" />
-              </a>
-              <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-foreground transition-colors"
-              >
-                <Twitter className="h-4 w-4" />
-              </a>
+              {siteConfig.social.github && (
+                <a
+                  href={siteConfig.social.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-foreground transition-colors"
+                >
+                  <Github className="h-4 w-4" />
+                </a>
+              )}
+              {siteConfig.social.twitter && (
+                <a
+                  href={siteConfig.social.twitter}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-foreground transition-colors"
+                >
+                  <Twitter className="h-4 w-4" />
+                </a>
+              )}
             </div>
           </div>
         </div>

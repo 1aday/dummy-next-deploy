@@ -2,10 +2,12 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Github, Twitter } from "lucide-react";
 import { format } from "date-fns";
 import { getAllPosts, getTagsWithCount } from "@/lib/posts";
+import { siteConfig } from "@/lib/config";
 
 export const metadata = {
   title: "Growth Guides | AI Growth Stack",
   description: "Deep technical guides on AI-powered product growth, retention systems, growth loops, personalization, and monetization strategies. Code-first tutorials from growth engineers building AI-native products.",
+  alternates: { canonical: "/blog" },
 };
 
 export default function BlogPage() {
@@ -144,22 +146,26 @@ export default function BlogPage() {
               © 2026 · Crafted with attention to detail
             </p>
             <div className="flex items-center gap-3">
-              <a 
-                href="https://github.com" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Github className="h-4 w-4" />
-              </a>
-              <a 
-                href="https://twitter.com" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Twitter className="h-4 w-4" />
-              </a>
+              {siteConfig.social.github && (
+                <a
+                  href={siteConfig.social.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Github className="h-4 w-4" />
+                </a>
+              )}
+              {siteConfig.social.twitter && (
+                <a
+                  href={siteConfig.social.twitter}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Twitter className="h-4 w-4" />
+                </a>
+              )}
             </div>
           </div>
           <div className="mt-6 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
