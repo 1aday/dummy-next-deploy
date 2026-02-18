@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Rocket, Brain, Database, Target } from "lucide-react";
 import { getAllGuides } from "@/lib/guides";
 
-const BASE_URL = "https://dummy-next-deploy.vercel.app";
+const BASE_URL = "https://growthstack.dev";
 
 const iconMap: Record<string, React.ReactNode> = {
   rocket: <Rocket className="h-6 w-6" />,

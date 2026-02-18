@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowRight, Tag } from "lucide-react";
 import { format } from "date-fns";
 import { getAllTags, getPostsByTagSlug, tagToSlug, getTagsWithCount } from "@/lib/posts";
 
-const BASE_URL = "https://dummy-next-deploy.vercel.app";
+const BASE_URL = "https://growthstack.dev";
 
 export async function generateStaticParams() {
   const tags = getAllTags();

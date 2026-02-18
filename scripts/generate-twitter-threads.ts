@@ -62,6 +62,6 @@ console.log(
   `${tweetNum}/ Want the full breakdown with code examples?\n`
 );
 console.log(
-  `Read the complete guide: https://dummy-next-deploy.vercel.app/blog/${slug}\n`
+  `Read the complete guide: https://growthstack.dev/blog/${slug}\n`
 );
 console.log(`\u267B\uFE0F RT if this was helpful!`);

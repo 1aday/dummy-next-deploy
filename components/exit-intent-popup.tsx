@@ -2,6 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { X, Mail, CheckCircle, Loader2 } from "lucide-react";
+import {
+  trackExitIntentShown,
+  trackExitIntentDismissed,
+  trackNewsletterSignup,
+} from "@/lib/analytics";
 
 const STORAGE_KEY = "exit-popup-dismissed";
 const DELAY_MS = 30_000;
@@ -16,6 +21,7 @@ export function ExitIntentPopup() {
 
   const dismiss = useCallback(() => {
     setVisible(false);
+    trackExitIntentDismissed();
     try {
       localStorage.setItem(STORAGE_KEY, "1");
     } catch {
@@ -45,6 +51,7 @@ export function ExitIntentPopup() {
     function handleMouseLeave(e: MouseEvent) {
       if (e.clientY <= 0) {
         setVisible(true);
+        trackExitIntentShown();
       }
     }
 
@@ -76,6 +83,7 @@ export function ExitIntentPopup() {
       }
 
       setSubmitted(true);
+      trackNewsletterSignup("exit-intent");
       // Auto-dismiss after success
       setTimeout(() => dismiss(), 2500);
     } catch {

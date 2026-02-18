@@ -394,6 +394,36 @@ export function getTermBySlug(slug: string): GlossaryTerm | undefined {
   return glossaryTerms.find((t) => t.slug === slug);
 }
 
+export const glossaryCategoryMeta: Record<
+  GlossaryTerm["category"],
+  { name: string; description: string }
+> = {
+  "ai-fundamentals": {
+    name: "AI Fundamentals",
+    description:
+      "Core concepts in artificial intelligence and machine learning — from transformer architectures and embeddings to prompt engineering and RAG pipelines.",
+  },
+  growth: {
+    name: "Growth Metrics & Concepts",
+    description:
+      "Key metrics and frameworks for measuring and driving product growth — churn, activation, viral loops, NRR, and product-led growth strategies.",
+  },
+  engineering: {
+    name: "AI Engineering",
+    description:
+      "The tools and practices for building, deploying, and operating AI systems in production — MLOps, model serving, feature flags, and experimentation.",
+  },
+  data: {
+    name: "Data & Infrastructure",
+    description:
+      "Data foundations for AI systems — vector similarity, dimensionality reduction, batch vs. real-time inference, and the infrastructure that powers AI features.",
+  },
+};
+
+export function getGlossaryCategories(): GlossaryTerm["category"][] {
+  return Object.keys(glossaryCategoryMeta) as GlossaryTerm["category"][];
+}
+
 export function getTermsByCategory(
   category: GlossaryTerm["category"]
 ): GlossaryTerm[] {

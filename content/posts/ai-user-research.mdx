@@ -1,0 +1,317 @@
+---
+title: "AI for User Research: How to Extract Insights from Support Tickets, Reviews, and Session Data at Scale"
+date: "2026-02-06"
+excerpt: "Manual user research doesn't scale. AI can analyze thousands of support tickets, reviews, and sessions to find patterns, extract insights, and prioritize product decisions. Here's how."
+tags: ["User Research", "AI", "Product Management", "NLP"]
+readingTime: "9 min read"
+---
+
+## The User Research Problem
+
+You have:
+- 10,000 support tickets
+- 5,000 app reviews
+- 1M user sessions
+- 200 customer interviews
+
+You can't read all of it. You're making decisions blind.
+
+AI can analyze everything and surface actionable insights.
+
+## Use Case 1: Support Ticket Analysis
+
+Extract themes and pain points automatically.
+
+```python
+from openai import OpenAI
+import pandas as pd
+
+def analyze_support_tickets(tickets):
+    """
+    Cluster tickets by topic and sentiment
+    """
+    client = OpenAI()
+    
+    # Batch analyze
+    themes = []
+    
+    for ticket in tickets:
+        prompt = f"""
+        Analyze this support ticket:
+        
+        "{ticket['message']}"
+        
+        Extract:
+        1. Primary issue category
+        2. Sentiment (frustrated/neutral/happy)
+        3. Urgency (low/medium/high)
+        4. Feature request (yes/no)
+        
+        Return JSON.
+        """
+        
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"}
+        )
+        
+        analysis = json.loads(response.choices[0].message.content)
+        themes.append(analysis)
+    
+    # Aggregate
+    df = pd.DataFrame(themes)
+    
+    return {
+        'top_issues': df['category'].value_counts().head(10),
+        'frustrated_users': len(df[df['sentiment'] == 'frustrated']),
+        'feature_requests': df[df['feature_request'] == 'yes']['category'].value_counts()
+    }
+```
+
+## Use Case 2: Review Mining
+
+Find what users love and hate.
+
+```python
+def analyze_app_reviews(reviews):
+    """
+    Extract sentiment + specific feedback from reviews
+    """
+    positive_features = []
+    negative_features = []
+    
+    for review in reviews:
+        # Sentiment analysis
+        sentiment = analyze_sentiment(review['text'])
+        
+        # Extract mentioned features
+        features = extract_features(review['text'])
+        
+        if sentiment > 0.5:
+            positive_features.extend(features)
+        elif sentiment < -0.5:
+            negative_features.extend(features)
+    
+    return {
+        'most_loved': Counter(positive_features).most_common(10),
+        'most_hated': Counter(negative_features).most_common(10),
+        'feature_sentiment': calculate_feature_sentiment(reviews)
+    }
+```
+
+## Use Case 3: Session Replay Analysis
+
+AI watches user sessions and finds friction.
+
+```python
+def analyze_session_patterns(sessions):
+    """
+    Identify common drop-off points and confusion patterns
+    """
+    from collections import defaultdict
+    
+    drop_offs = defaultdict(int)
+    confusion_signals = defaultdict(list)
+    
+    for session in sessions:
+        # Detect drop-off points
+        if session['completed'] == False:
+            last_page = session['page_path'][-1]
+            drop_offs[last_page] += 1
+        
+        # Detect confusion (rapid back/forth, rage clicks)
+        if has_confusion_pattern(session):
+            page = session['page_path'][-1]
+            confusion_signals[page].append({
+                'session_id': session['id'],
+                'pattern': detect_confusion_type(session)
+            })
+    
+    return {
+        'drop_off_pages': sorted(drop_offs.items(), key=lambda x: x[1], reverse=True)[:10],
+        'confusion_hotspots': {k: len(v) for k, v in confusion_signals.items()}
+    }
+```
+
+## Use Case 4: Interview Synthesis
+
+Turn hours of interviews into actionable insights.
+
+```python
+def synthesize_interviews(transcripts):
+    """
+    Extract themes from customer interviews
+    """
+    client = OpenAI()
+    
+    prompt = f"""
+    Synthesize these {len(transcripts)} customer interviews.
+    
+    Transcripts:
+    {json.dumps(transcripts)}
+    
+    Extract:
+    1. Top 5 pain points mentioned
+    2. Feature requests with frequency
+    3. Workflow patterns described
+    4. Competitive mentions
+    5. Buying criteria
+    
+    Return structured summary.
+    """
+    
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=2000
+    )
+    
+    return response.choices[0].message.content
+```
+
+## Use Case 5: Feature Prioritization
+
+AI-powered scoring based on user feedback.
+
+```python
+def prioritize_features(feedback_sources):
+    """
+    Score features by impact and demand
+    """
+    features = {}
+    
+    # Aggregate from multiple sources
+    support_requests = count_feature_requests(feedback_sources['support'])
+    reviews_mentions = count_feature_mentions(feedback_sources['reviews'])
+    interview_signals = extract_feature_signals(feedback_sources['interviews'])
+    
+    # Calculate scores
+    all_features = set(support_requests.keys()) | set(reviews_mentions.keys()) | set(interview_signals.keys())
+    
+    for feature in all_features:
+        score = (
+            support_requests.get(feature, 0) * 0.3 +
+            reviews_mentions.get(feature, 0) * 0.4 +
+            interview_signals.get(feature, 0) * 0.3
+        )
+        
+        features[feature] = {
+            'score': score,
+            'sources': {
+                'support': support_requests.get(feature, 0),
+                'reviews': reviews_mentions.get(feature, 0),
+                'interviews': interview_signals.get(feature, 0)
+            }
+        }
+    
+    return sorted(features.items(), key=lambda x: x[1]['score'], reverse=True)
+```
+
+## Use Case 6: Churn Reason Classification
+
+Automatically categorize why users churn.
+
+```python
+def classify_churn_reasons(churned_users):
+    """
+    Identify patterns in churn behavior
+    """
+    reasons = {
+        'price': 0,
+        'missing_feature': 0,
+        'poor_onboarding': 0,
+        'competitor_switch': 0,
+        'usage_decline': 0,
+        'support_issues': 0
+    }
+    
+    for user in churned_users:
+        # Check for signals
+        if check_price_sensitivity(user):
+            reasons['price'] += 1
+        
+        if check_feature_requests(user):
+            reasons['missing_feature'] += 1
+        
+        if not user['activated']:
+            reasons['poor_onboarding'] += 1
+        
+        if check_competitor_mentions(user):
+            reasons['competitor_switch'] += 1
+        
+        if user['usage_trend'] < -0.5:
+            reasons['usage_decline'] += 1
+        
+        if user['support_tickets'] > 5:
+            reasons['support_issues'] += 1
+    
+    return reasons
+```
+
+## Automated Insight Generation
+
+Daily digest of what's happening.
+
+```python
+def generate_daily_insights():
+    """
+    AI-powered product insights digest
+    """
+    today = datetime.now()
+    yesterday = today - timedelta(days=1)
+    
+    # Gather data
+    new_support_tickets = get_tickets(since=yesterday)
+    new_reviews = get_reviews(since=yesterday)
+    session_data = get_sessions(since=yesterday)
+    
+    # Analyze
+    ticket_themes = analyze_support_tickets(new_support_tickets)
+    review_sentiment = analyze_app_reviews(new_reviews)
+    drop_offs = analyze_session_patterns(session_data)
+    
+    # Generate report
+    client = OpenAI()
+    
+    prompt = f"""
+    Generate a product insights summary:
+    
+    Support tickets: {ticket_themes}
+    Review sentiment: {review_sentiment}
+    Session drop-offs: {drop_offs}
+    
+    Write:
+    1. Top 3 issues to address
+    2. New patterns or trends
+    3. Recommended actions
+    
+    Keep it concise and actionable.
+    """
+    
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": prompt}]
+    )
+    
+    return response.choices[0].message.content
+```
+
+## Real Examples
+
+**Airbnb:** AI analyzes millions of reviews to identify hosting issues  
+**Intercom:** Automated support ticket categorization and routing  
+**Notion:** Session analysis to find UX friction points
+
+## Implementation
+
+**Week 1-2:** Set up data pipelines (support, reviews, sessions)  
+**Week 3-4:** Build analysis scripts for each source  
+**Week 5-6:** Automate daily insight generation  
+**Week 7-8:** Integrate with product roadmap process
+
+AI-powered user research scales infinitely. Start analyzing.
+
+---
+
+**Questions?** [Twitter](https://twitter.com) | [Email](mailto:hello@example.com)

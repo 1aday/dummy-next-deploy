@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Mail, CheckCircle, Loader2 } from "lucide-react";
+import { trackNewsletterSignup } from "@/lib/analytics";
 
 interface NewsletterFormProps {
   variant?: "default" | "inline" | "mid-article";
@@ -35,6 +36,7 @@ export function NewsletterForm({ variant = "default" }: NewsletterFormProps) {
       }
 
       setSubmitted(true);
+      trackNewsletterSignup(variant);
     } catch {
       setError("Network error. Please try again.");
     } finally {

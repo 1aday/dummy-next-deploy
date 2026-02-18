@@ -143,13 +143,14 @@ export default function GlossaryPage() {
           {categories.map((cat) => {
             const count = terms.filter((t) => t.category === cat).length;
             return (
-              <span
+              <Link
                 key={cat}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold ${categoryColors[cat]}`}
+                href={`/glossary/category/${cat}`}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors hover:opacity-80 ${categoryColors[cat]}`}
               >
                 {categoryLabels[cat]}
                 <span className="opacity-60">{count}</span>
-              </span>
+              </Link>
             );
           })}
         </div>

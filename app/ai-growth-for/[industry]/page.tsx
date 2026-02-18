@@ -5,7 +5,7 @@ import { getAllIndustries, getIndustryBySlug } from "@/lib/industries";
 import { getPostBySlug } from "@/lib/posts";
 import { NewsletterForm } from "@/components/newsletter-form";
 
-const BASE_URL = "https://dummy-next-deploy.vercel.app";
+const BASE_URL = "https://growthstack.dev";
 
 export async function generateStaticParams() {
   const industries = getAllIndustries();
@@ -229,6 +229,15 @@ export default async function IndustryPage({ params }: { params: Promise<{ indus
                 {tech}
               </span>
             ))}
+          </div>
+          <div className="mt-6">
+            <Link
+              href={`/ai-growth-for/${slug}/stack`}
+              className="group inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+            >
+              View recommended tools for {industry.name}
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+            </Link>
           </div>
         </section>
 

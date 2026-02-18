@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import Script from "next/script";
 import { siteConfig } from "@/lib/config";
 import { ExitIntentPopup } from "@/components/exit-intent-popup";
+import { ScrollTracker } from "@/components/scroll-tracker";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -106,6 +107,7 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         {children}
         <ExitIntentPopup />
+        <ScrollTracker />
         <Analytics />
         {ga4Id && (
           <>

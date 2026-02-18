@@ -5,7 +5,7 @@ import { getAllGuides, getGuideBySlug } from "@/lib/guides";
 import { getPostBySlug } from "@/lib/posts";
 import { NewsletterForm } from "@/components/newsletter-form";
 
-const BASE_URL = "https://dummy-next-deploy.vercel.app";
+const BASE_URL = "https://growthstack.dev";
 
 export async function generateStaticParams() {
   const guides = getAllGuides();

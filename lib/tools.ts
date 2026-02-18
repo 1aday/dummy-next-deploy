@@ -1,5 +1,6 @@
 export interface Tool {
   name: string;
+  slug: string;
   description: string;
   pricing: string;
   bestFor: string;
@@ -23,6 +24,7 @@ export const toolCategories: ToolCategory[] = [
     tools: [
       {
         name: "Pinecone",
+        slug: "pinecone",
         description:
           "Fully managed vector database with zero operational overhead, excellent developer experience, and seamless scaling from prototype to billions of vectors.",
         pricing: "Free tier (100K vectors), then $70/mo Starter",
@@ -31,6 +33,7 @@ export const toolCategories: ToolCategory[] = [
       },
       {
         name: "Qdrant",
+        slug: "qdrant",
         description:
           "High-performance vector search engine written in Rust. Offers both cloud-managed and self-hosted options with excellent filtering and payload support.",
         pricing: "Free tier (1GB), then $25/mo cloud; open-source self-hosted",
@@ -39,6 +42,7 @@ export const toolCategories: ToolCategory[] = [
       },
       {
         name: "Weaviate",
+        slug: "weaviate",
         description:
           "Open-source vector database with built-in hybrid search combining vector and keyword matching. Strong module ecosystem for vectorization and ML integration.",
         pricing: "Free sandbox, then $25/mo Serverless; open-source self-hosted",
@@ -47,6 +51,7 @@ export const toolCategories: ToolCategory[] = [
       },
       {
         name: "pgvector",
+        slug: "pgvector",
         description:
           "PostgreSQL extension adding vector similarity search to your existing Postgres database. Supports IVFFlat and HNSW indexes with zero additional infrastructure.",
         pricing: "Free (open-source PostgreSQL extension)",
@@ -55,6 +60,7 @@ export const toolCategories: ToolCategory[] = [
       },
       {
         name: "Chroma",
+        slug: "chroma",
         description:
           "Developer-friendly, open-source embedding database designed for rapid prototyping. Simple Python API with in-memory and persistent storage modes.",
         pricing: "Free (open-source)",
@@ -76,6 +82,7 @@ export const toolCategories: ToolCategory[] = [
     tools: [
       {
         name: "OpenAI text-embedding-3",
+        slug: "openai-text-embedding-3",
         description:
           "OpenAI's latest embedding models with flexible dimensionality (256-3072). Available in large and small variants, balancing quality and cost for different use cases.",
         pricing: "$0.02-0.13 per 1M tokens",
@@ -84,6 +91,7 @@ export const toolCategories: ToolCategory[] = [
       },
       {
         name: "Cohere embed-v4",
+        slug: "cohere-embed-v4",
         description:
           "State-of-the-art multilingual embedding model supporting 100+ languages with leading performance on cross-lingual retrieval benchmarks.",
         pricing: "Free trial, then $0.10 per 1M tokens",
@@ -92,6 +100,7 @@ export const toolCategories: ToolCategory[] = [
       },
       {
         name: "BGE-M3",
+        slug: "bge-m3",
         description:
           "Open-source embedding model from BAAI supporting multi-lingual, multi-granularity, and multi-function capabilities. Self-hostable with strong benchmark scores.",
         pricing: "Free (open-source, self-hosted compute costs)",
@@ -100,6 +109,7 @@ export const toolCategories: ToolCategory[] = [
       },
       {
         name: "Voyage-3",
+        slug: "voyage-3",
         description:
           "Specialized embedding model with state-of-the-art performance on code retrieval benchmarks. Optimized for technical documentation and code search.",
         pricing: "Free tier, then $0.06 per 1M tokens",
@@ -121,6 +131,7 @@ export const toolCategories: ToolCategory[] = [
     tools: [
       {
         name: "OpenAI (GPT-4)",
+        slug: "openai-gpt4",
         description:
           "The most widely adopted LLM platform with models ranging from GPT-4o-mini (fast, cheap) to GPT-4 Turbo (most capable). Strongest ecosystem of tools and integrations.",
         pricing: "GPT-4o-mini $0.15/1M in, GPT-4o $2.50/1M in",
@@ -129,6 +140,7 @@ export const toolCategories: ToolCategory[] = [
       },
       {
         name: "Anthropic (Claude)",
+        slug: "anthropic-claude",
         description:
           "Claude models with 200K token context windows, strong instruction following, and nuanced writing quality. Excels at long-document analysis and content generation.",
         pricing: "Haiku $0.25/1M in, Sonnet $3/1M in, Opus $15/1M in",
@@ -137,6 +149,7 @@ export const toolCategories: ToolCategory[] = [
       },
       {
         name: "Google (Gemini)",
+        slug: "google-gemini",
         description:
           "Gemini models with native multimodal capabilities (text, image, video, audio). Deep integration with Google Cloud services and competitive pricing.",
         pricing: "Flash $0.075/1M in, Pro $1.25/1M in",
@@ -145,6 +158,7 @@ export const toolCategories: ToolCategory[] = [
       },
       {
         name: "Mistral",
+        slug: "mistral",
         description:
           "European AI lab offering efficient models with strong performance-to-cost ratios. Open-weight models available for self-hosting alongside managed API access.",
         pricing: "Small $0.10/1M in, Medium $0.40/1M in, Large $2/1M in",
@@ -153,6 +167,7 @@ export const toolCategories: ToolCategory[] = [
       },
       {
         name: "Meta (Llama)",
+        slug: "meta-llama",
         description:
           "Open-source Llama models that can be self-hosted for full control over data and costs. Community fine-tunes available for specialized tasks.",
         pricing: "Free (open-source, self-hosted compute costs)",
@@ -174,6 +189,7 @@ export const toolCategories: ToolCategory[] = [
     tools: [
       {
         name: "Mixpanel",
+        slug: "mixpanel",
         description:
           "Event-based analytics with powerful funnel analysis, retention cohorts, and user segmentation. Strong self-serve query interface for product teams.",
         pricing: "Free up to 20M events/mo, then $28/mo Growth",
@@ -182,6 +198,7 @@ export const toolCategories: ToolCategory[] = [
       },
       {
         name: "Amplitude",
+        slug: "amplitude",
         description:
           "Enterprise product analytics with behavioral cohorts, journey mapping, and built-in experimentation. Strong data governance and warehouse-native architecture.",
         pricing: "Free up to 50K MTU, then custom pricing",
@@ -190,6 +207,7 @@ export const toolCategories: ToolCategory[] = [
       },
       {
         name: "PostHog",
+        slug: "posthog",
         description:
           "Open-source product analytics with built-in feature flags, session recording, A/B testing, and surveys. Self-hostable for full data control.",
         pricing: "Free up to 1M events/mo, then $0.00031/event",
@@ -198,6 +216,7 @@ export const toolCategories: ToolCategory[] = [
       },
       {
         name: "Heap",
+        slug: "heap",
         description:
           "Auto-capture analytics that retroactively tracks every user interaction without manual instrumentation. Ideal for teams that want analysis without upfront event planning.",
         pricing: "Free tier available, then custom pricing",
@@ -219,6 +238,7 @@ export const toolCategories: ToolCategory[] = [
     tools: [
       {
         name: "LaunchDarkly",
+        slug: "launchdarkly",
         description:
           "Enterprise feature management platform with sophisticated targeting, progressive rollouts, and experimentation. The most mature feature flag platform available.",
         pricing: "Free up to 1K MAU, then $10/seat/mo Pro",
@@ -227,6 +247,7 @@ export const toolCategories: ToolCategory[] = [
       },
       {
         name: "Statsig",
+        slug: "statsig",
         description:
           "Feature flags and experimentation platform with built-in statistical rigor, auto-analysis, and warehouse-native metrics. Strong focus on measurement.",
         pricing: "Free up to 1M events, then $150/mo Pro",
@@ -235,6 +256,7 @@ export const toolCategories: ToolCategory[] = [
       },
       {
         name: "Optimizely",
+        slug: "optimizely",
         description:
           "Full-stack experimentation platform for web, mobile, and server-side testing. AI-powered traffic allocation and multi-armed bandit support.",
         pricing: "Custom pricing (enterprise-focused)",
@@ -243,6 +265,7 @@ export const toolCategories: ToolCategory[] = [
       },
       {
         name: "GrowthBook",
+        slug: "growthbook",
         description:
           "Open-source feature flagging and experimentation platform with Bayesian statistics, warehouse-native metrics, and a self-hostable architecture.",
         pricing: "Free (open-source), Cloud from $75/mo",
@@ -264,6 +287,7 @@ export const toolCategories: ToolCategory[] = [
     tools: [
       {
         name: "Dynamic Yield",
+        slug: "dynamic-yield",
         description:
           "Enterprise personalization platform with AI-powered product recommendations, content personalization, and triggered messaging across web, mobile, and email.",
         pricing: "Custom pricing (enterprise-focused)",
@@ -272,6 +296,7 @@ export const toolCategories: ToolCategory[] = [
       },
       {
         name: "Algolia",
+        slug: "algolia",
         description:
           "AI-powered search and discovery platform with personalized ranking, recommendations, and merchandising. Sub-50ms search latency at any scale.",
         pricing: "Free up to 10K requests/mo, then $1/1K requests",
@@ -280,6 +305,7 @@ export const toolCategories: ToolCategory[] = [
       },
       {
         name: "Bloomreach",
+        slug: "bloomreach",
         description:
           "Commerce experience platform combining search, merchandising, content, and marketing automation with AI-driven personalization across the entire customer journey.",
         pricing: "Custom pricing (commerce-focused)",
@@ -288,6 +314,7 @@ export const toolCategories: ToolCategory[] = [
       },
       {
         name: "Recombee",
+        slug: "recombee",
         description:
           "AI recommendation engine with real-time learning, content-based and collaborative filtering, and easy API integration. Updates recommendations as users interact.",
         pricing: "Free up to 100K API calls/mo, then $99/mo",
@@ -309,4 +336,18 @@ export function getAllToolCategories(): ToolCategory[] {
 
 export function getToolCategoryBySlug(slug: string): ToolCategory | undefined {
   return toolCategories.find((c) => c.slug === slug);
+}
+
+export function getToolBySlug(toolSlug: string): { tool: Tool; category: ToolCategory } | undefined {
+  for (const cat of toolCategories) {
+    const tool = cat.tools.find((t) => t.slug === toolSlug);
+    if (tool) return { tool, category: cat };
+  }
+  return undefined;
+}
+
+export function getAllTools(): { tool: Tool; category: ToolCategory }[] {
+  return toolCategories.flatMap((cat) =>
+    cat.tools.map((tool) => ({ tool, category: cat }))
+  );
 }

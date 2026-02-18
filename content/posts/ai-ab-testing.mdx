@@ -1,0 +1,407 @@
+---
+title: "AI-Driven A/B Testing: From Manual Experiments to Automated Optimization"
+date: "2026-02-08"
+excerpt: "Stop running one test at a time. Learn how to use multi-armed bandits, Bayesian optimization, and LLMs to run 100+ experiments simultaneously and find winners faster."
+tags: ["AI", "A/B Testing", "Optimization", "Product Growth"]
+readingTime: "7 min read"
+---
+
+## The Traditional A/B Testing Bottleneck
+
+**Old way:**
+1. Come up with hypothesis
+2. Design experiment
+3. Run for 2 weeks
+4. Analyze results
+5. Ship winner
+6. Repeat
+
+**Problem:** You can only test ~25 ideas per year.
+
+## AI-Powered Testing at Scale
+
+**New way:**
+- Run 100+ tests simultaneously
+- Auto-generate variations with LLMs
+- Multi-armed bandits allocate traffic to winners
+- Bayesian optimization finds optimal combinations
+
+## Multi-Armed Bandits
+
+### Thompson Sampling Implementation
+
+```python
+import numpy as np
+from scipy.stats import beta
+
+class ThompsonSampling:
+    def __init__(self, variants: list):
+        self.variants = variants
+        # Beta distribution parameters (successes, failures)
+        self.alpha = {v: 1 for v in variants}
+        self.beta_param = {v: 1 for v in variants}
+    
+    def select_variant(self) -> str:
+        """Choose variant to show next user"""
+        samples = {}
+        
+        for variant in self.variants:
+            # Sample from posterior distribution
+            sample = beta.rvs(
+                self.alpha[variant],
+                self.beta_param[variant]
+            )
+            samples[variant] = sample
+        
+        # Return variant with highest sample
+        return max(samples, key=samples.get)
+    
+    def update(self, variant: str, converted: bool):
+        """Update beliefs after observing result"""
+        if converted:
+            self.alpha[variant] += 1
+        else:
+            self.beta_param[variant] += 1
+```
+
+### Running Bandit Tests
+
+```python
+def run_bandit_test(variants: list, n_users=10000):
+    """Automatically allocate traffic to winners"""
+    
+    bandit = ThompsonSampling(variants)
+    
+    results = {v: {'impressions': 0, 'conversions': 0} for v in variants}
+    
+    for _ in range(n_users):
+        # Select variant
+        chosen = bandit.select_variant()
+        results[chosen]['impressions'] += 1
+        
+        # Simulate user action
+        converted = show_variant_and_measure(chosen)
+        results[chosen]['conversions'] += converted
+        
+        # Update bandit
+        bandit.update(chosen, converted)
+    
+    # Calculate final conversion rates
+    for v in variants:
+        cvr = results[v]['conversions'] / results[v]['impressions']
+        results[v]['cvr'] = cvr
+    
+    winner = max(results.items(), key=lambda x: x[1]['cvr'])
+    
+    return winner, results
+```
+
+**Advantage:** Minimizes regret—automatically sends more traffic to better variants.
+
+## LLM-Generated Test Variations
+
+### Auto-Generate Copy Variations
+
+```python
+from openai import OpenAI
+
+client = OpenAI()
+
+def generate_test_variations(original_copy: str, n=10):
+    """Create variations automatically"""
+    
+    prompt = f"""
+    Original headline: "{original_copy}"
+    
+    Generate {n} alternative headlines that:
+    - Test different value propositions
+    - Vary length (short vs. detailed)
+    - Try different tones (urgent, aspirational, practical)
+    - Include specific benefits
+    - Use power words
+    
+    Return as JSON list.
+    """
+    
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"}
+    )
+    
+    variations = json.loads(response.choices[0].message.content)
+    
+    return variations['headlines']
+```
+
+### Auto-Deploy and Test
+
+```python
+def automated_testing_pipeline(page: str, element: str):
+    """End-to-end automated testing"""
+    
+    # 1. Get current copy
+    current = get_page_element(page, element)
+    
+    # 2. Generate variations
+    variants = generate_test_variations(current, n=20)
+    variants.insert(0, current)  # Include original as control
+    
+    # 3. Run bandit test
+    bandit = ThompsonSampling(variants)
+    
+    # 4. Collect data for 1 week
+    for _ in range(7):
+        daily_traffic = get_daily_traffic(page)
+        
+        for user in daily_traffic:
+            variant = bandit.select_variant()
+            show_variant(user, page, element, variant)
+            
+            converted = track_conversion(user)
+            bandit.update(variant, converted)
+    
+    # 5. Get winner
+    winner = get_best_variant(bandit)
+    
+    # 6. Auto-deploy if significant improvement
+    if winner['cvr'] > get_current_cvr(page) * 1.05:
+        deploy_to_prod(page, element, winner['copy'])
+    
+    return winner
+```
+
+## Bayesian Optimization for Multi-Variable Tests
+
+### Optimizing Multiple Parameters
+
+```python
+from sklearn.gaussian_process import GaussianProcessRegressor
+
+def optimize_landing_page():
+    """Find optimal combination of elements"""
+    
+    # Parameter space
+    params = {
+        'headline': generate_test_variations(current_headline, n=10),
+        'cta_text': generate_test_variations(current_cta, n=5),
+        'hero_image': get_image_variants(n=3),
+        'pricing_display': ['monthly', 'annual', 'both']
+    }
+    
+    # Bayesian optimizer
+    gp = GaussianProcessRegressor()
+    
+    tested_combinations = []
+    results = []
+    
+    for iteration in range(50):
+        # Select next combination to test
+        if iteration < 10:
+            # Random exploration
+            combo = sample_random_combination(params)
+        else:
+            # Exploit + explore
+            combo = select_via_acquisition(gp, params, tested_combinations)
+        
+        # Test combination
+        cvr = run_test(combo, n_users=1000)
+        
+        tested_combinations.append(combo)
+        results.append(cvr)
+        
+        # Update model
+        gp.fit(tested_combinations, results)
+    
+    # Return best combination
+    best_idx = np.argmax(results)
+    return tested_combinations[best_idx], results[best_idx]
+```
+
+## Statistical Rigor
+
+### Bayesian A/B Test Analysis
+
+```python
+def bayesian_ab_test(control: dict, treatment: dict):
+    """Probabilistic analysis of test results"""
+    
+    # Posterior distributions
+    control_posterior = beta(
+        control['conversions'] + 1,
+        control['impressions'] - control['conversions'] + 1
+    )
+    
+    treatment_posterior = beta(
+        treatment['conversions'] + 1,
+        treatment['impressions'] - treatment['conversions'] + 1
+    )
+    
+    # Sample from posteriors
+    control_samples = control_posterior.rvs(100000)
+    treatment_samples = treatment_posterior.rvs(100000)
+    
+    # Probability treatment > control
+    prob_treatment_wins = (treatment_samples > control_samples).mean()
+    
+    # Expected lift
+    expected_lift = (treatment_samples - control_samples).mean()
+    
+    return {
+        'prob_treatment_wins': prob_treatment_wins,
+        'expected_lift': expected_lift,
+        'credible_interval': np.percentile(treatment_samples - control_samples, [2.5, 97.5])
+    }
+```
+
+## Automated Experiment Management
+
+### Experiment Orchestration
+
+```python
+class ExperimentManager:
+    def __init__(self):
+        self.active_experiments = []
+        self.completed_experiments = []
+    
+    def create_experiment(self, name: str, variants: list, allocation: dict):
+        """Set up new experiment"""
+        exp = {
+            'id': generate_id(),
+            'name': name,
+            'variants': variants,
+            'allocation': allocation,
+            'start_date': datetime.now(),
+            'status': 'active',
+            'bandit': ThompsonSampling(variants)
+        }
+        
+        self.active_experiments.append(exp)
+        return exp['id']
+    
+    def assign_variant(self, user_id: str, experiment_id: str) -> str:
+        """Assign user to variant"""
+        exp = self.get_experiment(experiment_id)
+        
+        if exp['allocation']['type'] == 'bandit':
+            variant = exp['bandit'].select_variant()
+        else:
+            variant = random.choice(exp['variants'])
+        
+        # Track assignment
+        log_assignment(user_id, experiment_id, variant)
+        
+        return variant
+    
+    def record_outcome(self, user_id: str, experiment_id: str, converted: bool):
+        """Record conversion"""
+        assignment = get_assignment(user_id, experiment_id)
+        exp = self.get_experiment(experiment_id)
+        
+        if exp['allocation']['type'] == 'bandit':
+            exp['bandit'].update(assignment['variant'], converted)
+    
+    def check_experiment_status(self, experiment_id: str):
+        """Auto-stop experiments with clear winners"""
+        exp = self.get_experiment(experiment_id)
+        
+        results = get_experiment_results(experiment_id)
+        
+        # Bayesian analysis
+        best_variant = max(results, key=lambda x: x['conversions'] / x['impressions'])
+        control = results[0]
+        
+        analysis = bayesian_ab_test(control, best_variant)
+        
+        # Auto-conclude if > 95% confidence
+        if analysis['prob_treatment_wins'] > 0.95:
+            self.conclude_experiment(experiment_id, winner=best_variant['variant'])
+```
+
+## Testing Strategy Framework
+
+### Prioritization
+
+```python
+def prioritize_experiments(ideas: list) -> list:
+    """Rank experiments by expected impact"""
+    
+    scored = []
+    
+    for idea in ideas:
+        # PIE framework: Potential × Importance × Ease
+        potential = estimate_lift(idea)  # Expected CVR improvement
+        importance = get_page_traffic(idea['page'])  # Traffic volume
+        ease = estimate_implementation_effort(idea)  # 1-10 scale
+        
+        score = (potential * importance) / ease
+        
+        scored.append({
+            **idea,
+            'pie_score': score
+        })
+    
+    return sorted(scored, key=lambda x: x['pie_score'], reverse=True)
+```
+
+## Measuring Testing Velocity
+
+```python
+def calculate_testing_metrics():
+    """Track experimentation efficiency"""
+    
+    experiments = get_all_experiments(days=90)
+    
+    metrics = {
+        'experiments_run': len(experiments),
+        'experiments_per_week': len(experiments) / 13,
+        'win_rate': sum(e['winner_lift'] > 0 for e in experiments) / len(experiments),
+        'avg_lift': np.mean([e['winner_lift'] for e in experiments if e['winner_lift'] > 0]),
+        'cumulative_impact': sum(e['traffic'] * e['winner_lift'] for e in experiments)
+    }
+    
+    return metrics
+```
+
+## Real Results
+
+Teams using AI-driven testing achieve:
+
+- **10x more experiments** per quarter
+- **2-3x faster time to winner**
+- **30-50% higher win rate** (better variation generation)
+- **Cumulative 20-40% CVR improvement** over 6 months
+
+## Implementation Checklist
+
+1. Set up event tracking and assignment logs
+2. Implement Thompson Sampling bandit
+3. Build LLM variation generator
+4. Create automated deployment pipeline
+5. Monitor experiments with Bayesian analysis
+6. Measure testing velocity and cumulative impact
+
+## Common Mistakes
+
+- Running too many experiments without enough traffic
+- Not accounting for multiple comparisons
+- Stopping tests too early
+- Ignoring segment-level differences
+
+## Start Here
+
+1. Pick 1 high-traffic page
+2. Generate 10 variations with LLM
+3. Run bandit test for 1 week
+4. Deploy winner if >5% lift
+5. Repeat weekly
+
+AI-powered testing is the new standard. Companies not using it will fall behind.
+
+---
+
+**Tools:**
+- OpenAI API (variation generation)
+- Statsmodels (Bayesian analysis)
+- Redis (experiment assignment)
+- FastAPI (serving variants)

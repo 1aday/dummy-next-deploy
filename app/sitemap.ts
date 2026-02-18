@@ -1,9 +1,14 @@
 import type { MetadataRoute } from "next";
 import { getAllPosts, getAllTags, tagToSlug } from "@/lib/posts";
 import { getAllComparisons } from "@/lib/comparisons";
-import { getAllTerms } from "@/lib/glossary";
-import { getAllToolCategories } from "@/lib/tools";
+import { getAllTerms, getGlossaryCategories } from "@/lib/glossary";
+import { getAllToolCategories, getAllTools } from "@/lib/tools";
 import { getAllDigests } from "@/lib/digests";
+import { getAllUseCases } from "@/lib/use-cases";
+import { getAllIndustries } from "@/lib/industries";
+import { getAllToolComparisons } from "@/lib/tool-comparisons";
+import { getAllIndustryToolRecs } from "@/lib/industry-tools";
+import { getAllConceptIndustryPages } from "@/lib/concept-industry";
 import { siteConfig } from "@/lib/config";
 
 const BASE_URL = siteConfig.url;
@@ -121,6 +126,85 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   ];
 
+  // Use-case pages
+  const useCases = getAllUseCases();
+  const useCaseEntries: MetadataRoute.Sitemap = [
+    {
+      url: `${BASE_URL}/use-cases`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    ...useCases.map((uc) => ({
+      url: `${BASE_URL}/use-cases/${uc.slug}`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
+  ];
+
+  // Industry stack pages
+  const allIndustries = getAllIndustries();
+  const industryStackEntries: MetadataRoute.Sitemap = allIndustries.map((ind) => ({
+    url: `${BASE_URL}/ai-growth-for/${ind.slug}/stack`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
+
+  // Glossary category pages
+  const glossaryCategories = getGlossaryCategories();
+  const glossaryCategoryEntries: MetadataRoute.Sitemap = glossaryCategories.map((cat) => ({
+    url: `${BASE_URL}/glossary/category/${cat}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
+
+  // Tool vs Tool comparison pages
+  const toolComparisons = getAllToolComparisons();
+  const toolComparisonEntries: MetadataRoute.Sitemap = toolComparisons.map((c) => ({
+    url: `${BASE_URL}/compare/tools/${c.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
+
+  // Individual tool profile pages
+  const allTools = getAllTools();
+  const toolProfileEntries: MetadataRoute.Sitemap = allTools.map(({ tool, category }) => ({
+    url: `${BASE_URL}/tools/${category.slug}/${tool.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
+
+  // Best tools for industry pages
+  const industryToolRecs = getAllIndustryToolRecs();
+  const industryToolEntries: MetadataRoute.Sitemap = industryToolRecs.map((r) => ({
+    url: `${BASE_URL}/tools/${r.categorySlug}/for/${r.industrySlug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.65,
+  }));
+
+  // Concept × Industry learn pages
+  const conceptIndustryPages = getAllConceptIndustryPages();
+  const learnEntries: MetadataRoute.Sitemap = [
+    {
+      url: `${BASE_URL}/learn`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    ...conceptIndustryPages.map((p) => ({
+      url: `${BASE_URL}/learn/${p.conceptSlug}/for/${p.industrySlug}`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.65,
+    })),
+  ];
+
   return [
     {
       url: BASE_URL,
@@ -150,9 +234,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...blogEntries,
     ...tagEntries,
     ...industryEntries,
+    ...industryStackEntries,
+    ...useCaseEntries,
     ...comparisonEntries,
     ...glossaryEntries,
+    ...glossaryCategoryEntries,
     ...toolEntries,
+    ...toolProfileEntries,
+    ...toolComparisonEntries,
+    ...industryToolEntries,
+    ...learnEntries,
     ...digestEntries,
   ];
 }
