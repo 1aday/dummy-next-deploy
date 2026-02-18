@@ -5,7 +5,8 @@ import {
   getTermsByCategory,
   getGlossaryCategories,
   glossaryCategoryMeta,
-  type GlossaryTerm,
+  categoryColors,
+  type GlossaryCategory,
 } from "@/lib/glossary";
 import { siteConfig } from "@/lib/config";
 
@@ -21,7 +22,7 @@ export async function generateMetadata({
   params: Promise<{ category: string }>;
 }) {
   const { category: rawCategory } = await params;
-  const category = rawCategory as GlossaryTerm["category"];
+  const category = rawCategory as GlossaryCategory;
   const meta = glossaryCategoryMeta[category];
 
   if (!meta) {
@@ -49,20 +50,13 @@ export async function generateMetadata({
   };
 }
 
-const categoryColors: Record<GlossaryTerm["category"], string> = {
-  "ai-fundamentals": "bg-blue-500/10 text-blue-500 border-blue-500/20",
-  growth: "bg-green-500/10 text-green-500 border-green-500/20",
-  engineering: "bg-purple-500/10 text-purple-500 border-purple-500/20",
-  data: "bg-amber-500/10 text-amber-500 border-amber-500/20",
-};
-
 export default async function GlossaryCategoryPage({
   params,
 }: {
   params: Promise<{ category: string }>;
 }) {
   const { category: rawCategory } = await params;
-  const category = rawCategory as GlossaryTerm["category"];
+  const category = rawCategory as GlossaryCategory;
   const meta = glossaryCategoryMeta[category];
 
   if (!meta) {
@@ -120,46 +114,6 @@ export default async function GlossaryCategoryPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-
-      <nav className="sticky top-0 z-50 glass-card border-b border-border/60">
-        <div className="mx-auto max-w-3xl px-6">
-          <div className="flex h-16 items-center justify-between">
-            <Link
-              href="/"
-              className="group flex items-center gap-2 font-display text-base font-semibold text-foreground"
-            >
-              <span className="relative flex items-center gap-1.5">
-                <span className="text-primary">AI</span>
-                <span className="text-muted-foreground">/</span>
-                <span>Stack</span>
-              </span>
-            </Link>
-            <div className="flex items-center gap-6">
-              <Link
-                href="/guides"
-                className="relative text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group"
-              >
-                Guides
-                <span className="absolute -bottom-1.5 left-0 h-0.5 w-0 bg-primary transition-all group-hover:w-full" />
-              </Link>
-              <Link
-                href="/blog"
-                className="relative text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group"
-              >
-                Writing
-                <span className="absolute -bottom-1.5 left-0 h-0.5 w-0 bg-primary transition-all group-hover:w-full" />
-              </Link>
-              <Link
-                href="/about"
-                className="relative text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group"
-              >
-                About
-                <span className="absolute -bottom-1.5 left-0 h-0.5 w-0 bg-primary transition-all group-hover:w-full" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
 
       <main className="mx-auto max-w-3xl px-6 py-20">
         <Link
@@ -226,24 +180,6 @@ export default async function GlossaryCategoryPage({
           </div>
         </div>
       </main>
-
-      <footer className="mt-32 border-t border-border/50">
-        <div className="mx-auto max-w-3xl px-6 py-12">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
-              © 2026 AI Growth Stack
-            </p>
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <Link
-                href="/feed.xml"
-                className="hover:text-foreground transition-colors"
-              >
-                RSS
-              </Link>
-            </div>
-          </div>
-        </div>
-      </footer>
     </>
   );
 }

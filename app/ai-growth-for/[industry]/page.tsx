@@ -96,37 +96,6 @@ export default async function IndustryPage({ params }: { params: Promise<{ indus
         />
       ))}
 
-      <nav className="sticky top-0 z-50 glass-card border-b border-border/60">
-        <div className="mx-auto max-w-3xl px-6">
-          <div className="flex h-16 items-center justify-between">
-            <Link
-              href="/"
-              className="group flex items-center gap-2 font-display text-base font-semibold text-foreground"
-            >
-              <span className="relative flex items-center gap-1.5">
-                <span className="text-primary">AI</span>
-                <span className="text-muted-foreground">/</span>
-                <span>Stack</span>
-              </span>
-            </Link>
-            <div className="flex items-center gap-6">
-              <Link href="/guides" className="relative text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group">
-                Guides
-                <span className="absolute -bottom-1.5 left-0 h-0.5 w-0 bg-primary transition-all group-hover:w-full" />
-              </Link>
-              <Link href="/blog" className="relative text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group">
-                Writing
-                <span className="absolute -bottom-1.5 left-0 h-0.5 w-0 bg-primary transition-all group-hover:w-full" />
-              </Link>
-              <Link href="/about" className="relative text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group">
-                About
-                <span className="absolute -bottom-1.5 left-0 h-0.5 w-0 bg-primary transition-all group-hover:w-full" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-
       <article className="mx-auto max-w-3xl px-6 py-16">
         <Link
           href="/"

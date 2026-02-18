@@ -77,25 +77,6 @@ export default async function ConceptIndustryPage({ params }: { params: Promise<
         <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       ))}
 
-      <nav className="sticky top-0 z-50 glass-card border-b border-border/60">
-        <div className="mx-auto max-w-3xl px-6">
-          <div className="flex h-16 items-center justify-between">
-            <Link href="/" className="group flex items-center gap-2 font-display text-base font-semibold text-foreground">
-              <span className="relative flex items-center gap-1.5">
-                <span className="text-primary">AI</span>
-                <span className="text-muted-foreground">/</span>
-                <span>Stack</span>
-              </span>
-            </Link>
-            <div className="flex items-center gap-6">
-              <Link href="/guides" className="relative text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group">Guides<span className="absolute -bottom-1.5 left-0 h-0.5 w-0 bg-primary transition-all group-hover:w-full" /></Link>
-              <Link href="/blog" className="relative text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group">Writing<span className="absolute -bottom-1.5 left-0 h-0.5 w-0 bg-primary transition-all group-hover:w-full" /></Link>
-              <Link href="/about" className="relative text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group">About<span className="absolute -bottom-1.5 left-0 h-0.5 w-0 bg-primary transition-all group-hover:w-full" /></Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-
       <main className="mx-auto max-w-3xl px-6 py-16">
         <Link href="/learn" className="group mb-12 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
@@ -257,17 +238,6 @@ export default async function ConceptIndustryPage({ params }: { params: Promise<
           </section>
         )}
       </main>
-
-      <footer className="mt-32 border-t border-border/50">
-        <div className="mx-auto max-w-3xl px-6 py-12">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">© 2026 AI Growth Stack</p>
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <Link href="/feed.xml" className="hover:text-foreground transition-colors">RSS</Link>
-            </div>
-          </div>
-        </div>
-      </footer>
     </>
   );
 }

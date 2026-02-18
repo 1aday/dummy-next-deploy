@@ -5,6 +5,8 @@ import Script from "next/script";
 import { siteConfig } from "@/lib/config";
 import { ExitIntentPopup } from "@/components/exit-intent-popup";
 import { ScrollTracker } from "@/components/scroll-tracker";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -93,11 +95,12 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "SiteNavigationElement",
-              name: ["Home", "Guides", "Writing", "About"],
+              name: ["Home", "Guides", "Writing", "Glossary", "About"],
               url: [
                 siteConfig.url,
                 `${siteConfig.url}/guides`,
                 `${siteConfig.url}/blog`,
+                `${siteConfig.url}/glossary`,
                 `${siteConfig.url}/about`,
               ],
             }),
@@ -105,7 +108,9 @@ export default function RootLayout({
         />
       </head>
       <body className="font-sans antialiased">
+        <SiteHeader />
         {children}
+        <SiteFooter />
         <ExitIntentPopup />
         <ScrollTracker />
         <Analytics />

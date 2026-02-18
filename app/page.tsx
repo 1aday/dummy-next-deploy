@@ -24,49 +24,6 @@ export default function Home() {
     .filter(Boolean);
 
   return (
-    <>
-      <nav className="sticky top-0 z-50 glass-card border-b border-border/60">
-        <div className="mx-auto max-w-3xl px-6">
-          <div className="flex h-16 items-center justify-between">
-            <Link
-              href="/"
-              className="group flex items-center gap-2 font-display text-base font-semibold text-foreground"
-            >
-              <span className="relative flex items-center gap-1.5">
-                <span className="text-primary">AI</span>
-                <span className="text-accent">Growth</span>
-                <span className="text-muted-foreground">/</span>
-                <span>Stack</span>
-                <span className="absolute -inset-2 rounded bg-primary/10 opacity-0 transition-opacity group-hover:opacity-100" />
-              </span>
-            </Link>
-            <div className="flex items-center gap-6">
-              <Link
-                href="/guides"
-                className="relative text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group"
-              >
-                Guides
-                <span className="absolute -bottom-1.5 left-0 h-0.5 w-0 bg-primary transition-all group-hover:w-full" />
-              </Link>
-              <Link
-                href="/blog"
-                className="relative text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group"
-              >
-                Writing
-                <span className="absolute -bottom-1.5 left-0 h-0.5 w-0 bg-primary transition-all group-hover:w-full" />
-              </Link>
-              <Link
-                href="/about"
-                className="relative text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group"
-              >
-                About
-                <span className="absolute -bottom-1.5 left-0 h-0.5 w-0 bg-primary transition-all group-hover:w-full" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-
       <main className="mx-auto max-w-3xl px-6 py-20">
         {/* Hero */}
         <section className="mb-20">
@@ -278,43 +235,5 @@ export default function Home() {
           </div>
         </section>
       </main>
-
-      <footer className="mt-32 border-t border-border/50">
-        <div className="mx-auto max-w-3xl px-6 py-12">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
-              © 2026 AI Growth Stack
-            </p>
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <Link href="/feed.xml" className="hover:text-foreground transition-colors">RSS</Link>
-              {siteConfig.social.github && (
-                <a
-                  href={siteConfig.social.github}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <Github className="h-4 w-4" />
-                </a>
-              )}
-              {siteConfig.social.twitter && (
-                <a
-                  href={siteConfig.social.twitter}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <Twitter className="h-4 w-4" />
-                </a>
-              )}
-            </div>
-          </div>
-          <div className="mt-6 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-          <p className="mt-6 text-center text-xs text-muted-foreground/60">
-            Next.js 16 · React 19 · Tailwind CSS v4
-          </p>
-        </div>
-      </footer>
-    </>
   );
 }

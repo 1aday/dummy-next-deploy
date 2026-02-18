@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { X, Mail, CheckCircle, Loader2 } from "lucide-react";
 import {
   trackExitIntentShown,
@@ -11,16 +11,21 @@ import {
 const STORAGE_KEY = "exit-popup-dismissed";
 const DELAY_MS = 30_000;
 
+// Module-level flag survives hot reloads
+let shownThisSession = false;
+
 export function ExitIntentPopup() {
   const [visible, setVisible] = useState(false);
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [ready, setReady] = useState(false);
+  const dismissedRef = useRef(false);
 
   const dismiss = useCallback(() => {
     setVisible(false);
+    dismissedRef.current = true;
+    shownThisSession = true;
     trackExitIntentDismissed();
     try {
       localStorage.setItem(STORAGE_KEY, "1");
@@ -30,7 +35,8 @@ export function ExitIntentPopup() {
   }, []);
 
   useEffect(() => {
-    // Check if already dismissed
+    // Already shown/dismissed this session or a previous one
+    if (shownThisSession) return;
     try {
       if (localStorage.getItem(STORAGE_KEY)) return;
     } catch {
@@ -39,27 +45,29 @@ export function ExitIntentPopup() {
 
     // Wait 30s before arming the exit-intent listener
     const timer = setTimeout(() => {
-      setReady(true);
+      function handleMouseLeave(e: MouseEvent) {
+        if (e.clientY <= 0 && !dismissedRef.current && !shownThisSession) {
+          shownThisSession = true;
+          setVisible(true);
+          trackExitIntentShown();
+          document.documentElement.removeEventListener("mouseleave", handleMouseLeave);
+        }
+      }
+
+      document.documentElement.addEventListener("mouseleave", handleMouseLeave);
+      // Store cleanup ref
+      cleanupRef.current = () => {
+        document.documentElement.removeEventListener("mouseleave", handleMouseLeave);
+      };
     }, DELAY_MS);
 
-    return () => clearTimeout(timer);
-  }, []);
+    const cleanupRef = { current: () => {} };
 
-  useEffect(() => {
-    if (!ready) return;
-
-    function handleMouseLeave(e: MouseEvent) {
-      if (e.clientY <= 0) {
-        setVisible(true);
-        trackExitIntentShown();
-      }
-    }
-
-    document.documentElement.addEventListener("mouseleave", handleMouseLeave);
     return () => {
-      document.documentElement.removeEventListener("mouseleave", handleMouseLeave);
+      clearTimeout(timer);
+      cleanupRef.current();
     };
-  }, [ready]);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

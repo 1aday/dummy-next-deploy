@@ -1,7 +1,13 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, BookOpen } from "lucide-react";
-import { getAllTerms, getTermBySlug } from "@/lib/glossary";
+import {
+  getAllTerms,
+  getTermBySlug,
+  getRelatedTerms,
+  categoryLabels,
+  categoryColors,
+} from "@/lib/glossary";
 import { getPostBySlug } from "@/lib/posts";
 import { siteConfig } from "@/lib/config";
 
@@ -59,13 +65,6 @@ function getLinkedPosts(slugs: string[]) {
   }[];
 }
 
-const categoryLabels: Record<string, string> = {
-  "ai-fundamentals": "AI Fundamentals",
-  growth: "Growth",
-  engineering: "Engineering",
-  data: "Data",
-};
-
 export default async function GlossaryTermPage({
   params,
 }: {
@@ -76,9 +75,7 @@ export default async function GlossaryTermPage({
   if (!term) notFound();
 
   const relatedPosts = getLinkedPosts(term.relatedPosts);
-  const relatedTerms = term.relatedTerms
-    .map((s) => getTermBySlug(s))
-    .filter(Boolean) as NonNullable<ReturnType<typeof getTermBySlug>>[];
+  const relatedTerms = getRelatedTerms(term);
 
   const jsonLd = [
     {
@@ -129,47 +126,6 @@ export default async function GlossaryTermPage({
         />
       ))}
 
-      <nav className="sticky top-0 z-50 glass-card border-b border-border/60">
-        <div className="mx-auto max-w-3xl px-6">
-          <div className="flex h-16 items-center justify-between">
-            <Link
-              href="/"
-              className="group flex items-center gap-2 font-display text-base font-semibold text-foreground"
-            >
-              <span className="relative flex items-center gap-1.5">
-                <span className="text-primary">AI</span>
-                <span className="text-muted-foreground">/</span>
-                <span>Stack</span>
-                <span className="absolute -inset-2 rounded bg-primary/10 opacity-0 transition-opacity group-hover:opacity-100" />
-              </span>
-            </Link>
-            <div className="flex items-center gap-6">
-              <Link
-                href="/guides"
-                className="relative text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group"
-              >
-                Guides
-                <span className="absolute -bottom-1.5 left-0 h-0.5 w-0 bg-primary transition-all group-hover:w-full" />
-              </Link>
-              <Link
-                href="/blog"
-                className="relative text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group"
-              >
-                Writing
-                <span className="absolute -bottom-1.5 left-0 h-0.5 w-0 bg-primary transition-all group-hover:w-full" />
-              </Link>
-              <Link
-                href="/about"
-                className="relative text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group"
-              >
-                About
-                <span className="absolute -bottom-1.5 left-0 h-0.5 w-0 bg-primary transition-all group-hover:w-full" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-
       <main className="mx-auto max-w-3xl px-6 py-16">
         <Link
           href="/glossary"
@@ -182,10 +138,13 @@ export default async function GlossaryTermPage({
         {/* Header */}
         <header className="mb-10">
           <div className="mb-4 flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+            <Link
+              href={`/glossary/category/${term.category}`}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold hover:opacity-80 transition-opacity ${categoryColors[term.category]}`}
+            >
               <BookOpen className="h-3 w-3" />
               {categoryLabels[term.category]}
-            </span>
+            </Link>
           </div>
           <h1 className="mb-6 font-display text-4xl font-bold text-foreground md:text-5xl">
             {term.term}
@@ -201,7 +160,10 @@ export default async function GlossaryTermPage({
         <section className="mb-16">
           <div className="prose">
             {term.explanation.split("\n\n").map((paragraph, i) => (
-              <p key={i} className="mb-4 text-base leading-relaxed text-muted-foreground/90">
+              <p
+                key={i}
+                className="mb-4 text-base leading-relaxed text-muted-foreground/90"
+              >
                 {paragraph}
               </p>
             ))}
@@ -261,24 +223,6 @@ export default async function GlossaryTermPage({
           </section>
         )}
       </main>
-
-      <footer className="mt-32 border-t border-border/50">
-        <div className="mx-auto max-w-3xl px-6 py-12">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
-              © 2026 AI Growth Stack
-            </p>
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <Link
-                href="/feed.xml"
-                className="hover:text-foreground transition-colors"
-              >
-                RSS
-              </Link>
-            </div>
-          </div>
-        </div>
-      </footer>
     </>
   );
 }
